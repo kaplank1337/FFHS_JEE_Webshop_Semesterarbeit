@@ -1,0 +1,72 @@
+# Idea
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Maven
+target/
+.m2/
+*.jar
+*.war
+*.ear
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+
+# Gradle
+.gradle/
+build/
+
+# IDE
+.vscode/
+.classpath
+.factorypath
+.project
+.settings/
+.sts4-cache/
+
+# OS
+.DS_Store
+Thumbs.db
+.env
+.env.local
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Temp files
+*.tmp
+*.bak
+*~
+.swp
+.swo
+
+# Node (if frontend included)
+node_modules/
+dist/
+npm-debug.log
+
+# Docker
+.dockerignore
+
+# Database
+*.db
+*.sqlite
+
+# Coverage
+.coverage
+htmlcov/
+target/site/
+
+# IDE specific
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+

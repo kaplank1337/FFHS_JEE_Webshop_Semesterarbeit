@@ -1,0 +1,169 @@
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: jee-shop-postgres
+    environment:
+      POSTGRES_DB: webshop
+      POSTGRES_USER: webshop
+      POSTGRES_PASSWORD: webshop123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U webshop"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jee-shop-network
+
+  activemq:
+    image: apache/activemq:latest
+    container_name: jee-shop-activemq
+    ports:
+      - "61616:61616"
+      - "8161:8161"
+    environment:
+      ACTIVEMQ_OPTS: "-Xms256m -Xmx512m"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "curl -f http://localhost:8161/admin/ || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    networks:
+      - jee-shop-network
+
+  user-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.user-service
+    container_name: jee-shop-user-service
+    ports:
+      - "8081:8080"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: webshop
+      DB_USER: webshop
+      DB_PASSWORD: webshop123
+      DB_SCHEMA: app_user
+      JMS_HOST: activemq
+      JMS_PORT: 61616
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRATION_SECONDS: 3600
+    depends_on:
+      postgres:
+        condition: service_started
+      activemq:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - jee-shop-network
+
+  order-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.order-service
+    container_name: jee-shop-order-service
+    ports:
+      - "8082:8080"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: webshop
+      DB_USER: webshop
+      DB_PASSWORD: webshop123
+      DB_SCHEMA: orders
+      JMS_HOST: activemq
+      JMS_PORT: 61616
+      USER_SERVICE_URL: http://user-service:8080
+    depends_on:
+      postgres:
+        condition: service_started
+      activemq:
+        condition: service_started
+      user-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - jee-shop-network
+
+  shipping-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.shipping-service
+    container_name: jee-shop-shipping-service
+    ports:
+      - "8083:8080"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: webshop
+      DB_USER: webshop
+      DB_PASSWORD: webshop123
+      DB_SCHEMA: shipping
+      JMS_HOST: activemq
+      JMS_PORT: 61616
+    depends_on:
+      postgres:
+        condition: service_started
+      activemq:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - jee-shop-network
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api-gateway
+    container_name: jee-shop-api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      USER_SERVICE_URL: http://user-service:8080
+      ORDER_SERVICE_URL: http://order-service:8080
+      SHIPPING_SERVICE_URL: http://shipping-service:8080
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+    depends_on:
+      user-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+      shipping-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - jee-shop-network
+
+volumes:
+  postgres_data:
+
+networks:
+  jee-shop-network:
+    driver: bridge
+

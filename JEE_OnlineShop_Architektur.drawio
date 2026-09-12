@@ -1,0 +1,115 @@
+<mxfile host="Electron" agent="ChatGPT">
+  <diagram id="jee-shop-architecture" name="JEE Online-Shop Architektur">
+    <mxGraphModel dx="3998" dy="1209" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=24;fontStyle=1;" value="Jakarta EE Online-Shop – Microservice Architektur" vertex="1">
+          <mxGeometry height="40" width="840" x="380" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="backendZone" parent="1" style="swimlane;html=1;rounded=1;startSize=28;fontStyle=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Backend / Jakarta EE" vertex="1">
+          <mxGeometry height="1020" width="1140" x="120" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="gateway" parent="backendZone" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" value="API Gateway&#xa;&#xa;• REST Entry Point&#xa;• Token validieren&#xa;• Routing&#xa;• Auth-Filter" vertex="1">
+          <mxGeometry height="140" width="210" x="130" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="restLabel" parent="backendZone" style="text;html=1;align=center;verticalAlign=middle;fontStyle=1;" value="REST / HTTPS&#xa;JSON" vertex="1">
+          <mxGeometry height="45" width="95" x="20" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="authService" parent="backendZone" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="User &amp; Auth Service&#xa;&#xa;Jakarta REST / CDI / JPA&#xa;&#xa;• Registrierung&#xa;• Login Username + Passwort&#xa;• Passwort-Hash&#xa;• Token ausstellen&#xa;• Benutzerverwaltung" vertex="1">
+          <mxGeometry height="180" width="240" x="680" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="gatewayToAuth" edge="1" parent="backendZone" source="gateway" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" target="authService" value="REST&#xa;/auth/* /users/*">
+          <mxGeometry relative="1" x="0.375" y="30" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="authToGateway" edge="1" parent="backendZone" source="authService" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;dashed=1;" target="gateway" value="Token">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="userDb" parent="backendZone" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;" value="Schemata:&lt;br&gt;User&lt;br&gt;Order&lt;br&gt;Shipping&lt;br&gt;PostgreSQL&lt;br&gt;&lt;br&gt;JPA / ORM" vertex="1">
+          <mxGeometry height="157.81" width="252" x="680" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="jmsBroker" parent="backendZone" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" value="JMS Message Broker&#xa;&#xa;Queue / Topic&#xa;&#xa;order.created&#xa;delivery.status.changed" vertex="1">
+          <mxGeometry height="120" width="210" x="695" y="800" as="geometry" />
+        </mxCell>
+        <mxCell id="jmsToDelivery" edge="1" parent="backendZone" source="jmsBroker" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;" target="deliveryService" value="JMS&#xa;asynchron">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="deliveryToJms" edge="1" parent="backendZone" source="deliveryService" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;dashed=1;" target="jmsBroker" value="JMS&#xa;DeliveryStatusChanged">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="websocket" parent="backendZone" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="WebSocket Endpoint&#xa;&#xa;Jakarta WebSocket&#xa;Live-Updates für Bestell-/Lieferstatus" vertex="1">
+          <mxGeometry height="110" width="240" x="100" y="805" as="geometry" />
+        </mxCell>
+        <mxCell id="jmsToWebsocket" edge="1" parent="backendZone" source="jmsBroker" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" target="websocket" value="Status Event">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nYiJaO_Tg81eLMcfwVpw-4" edge="1" parent="backendZone" source="deliveryService" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="810" y="575" />
+              <mxPoint x="810" y="420" />
+            </Array>
+            <mxPoint x="820" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="deliveryService" parent="backendZone" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" value="Auslieferungs-Service&#xa;&#xa;Jakarta JMS / CDI / EJB / JPA&#xa;&#xa;• OrderCreated konsumieren&#xa;• Lieferung anlegen&#xa;• Lieferstatus verwalten&#xa;• StatusChanged Event senden" vertex="1">
+          <mxGeometry height="190" width="230" x="850" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="orderService" parent="backendZone" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Bestell-Service&#xa;&#xa;Jakarta REST / CDI / EJB / JPA&#xa;&#xa;• Produktkatalog&#xa;• Warenkorb&#xa;• Bestellung aufnehmen&#xa;• Checkout&#xa;• OrderCreated Event senden" vertex="1">
+          <mxGeometry height="190" width="240" x="510" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="gatewayToOrder" edge="1" parent="backendZone" source="gateway" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" target="orderService" value="REST&#xa;/products /orders /cart">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="orderToJms" edge="1" parent="backendZone" source="orderService" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;" target="jmsBroker" value="JMS&#xa;OrderCreated">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="jwtLabel" parent="backendZone" style="text;html=1;align=center;verticalAlign=middle;fontStyle=1;" value="Bearer Token" vertex="1">
+          <mxGeometry height="30" width="110" x="180" as="geometry" />
+        </mxCell>
+        <mxCell id="nYiJaO_Tg81eLMcfwVpw-2" edge="1" parent="backendZone" source="authService" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="userDb" value="JPA">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="800" y="230" />
+              <mxPoint x="806" y="230" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nYiJaO_Tg81eLMcfwVpw-3" edge="1" parent="backendZone" source="orderService" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" target="userDb" value="JPA">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="810" y="575" />
+              <mxPoint x="810" y="417.8" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uiToGateway" edge="1" parent="1" source="reactUi" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" target="gateway" value="HTTP REST">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="gatewayToUi" edge="1" parent="1" source="gateway" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;dashed=1;" target="reactUi" value="JSON Response">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="websocketToUi" edge="1" parent="1" source="websocket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;" target="reactUi" value="WebSocket&#xa;Server Push">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="note" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Architekturprinzipien:&#xa;• UI ↔ Backend synchron über REST&#xa;• Authentifizierung: Username/Passwort → Token&#xa;• Gateway prüft Token vor geschützten Requests&#xa;• Jeder Microservice besitzt seine eigene Datenhaltung&#xa;• Bestellung → Auslieferung asynchron über JMS&#xa;• WebSocket für Live-Statusupdates zum Browser" vertex="1">
+          <mxGeometry height="290" width="360" x="1310" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Mögliche Jakarta-EE-Technologien&#xa;&#xa;REST: Jakarta RESTful Web Services (JAX-RS)&#xa;Persistence: Jakarta Persistence (JPA)&#xa;DI: CDI&#xa;Business: EJB / CDI&#xa;Messaging: Jakarta Messaging (JMS)&#xa;Realtime: Jakarta WebSocket&#xa;DB: PostgreSQL" vertex="1">
+          <mxGeometry height="300" width="370" x="1310" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="nYiJaO_Tg81eLMcfwVpw-1" connectable="0" parent="1" style="group" value="" vertex="1">
+          <mxGeometry height="330" width="350" x="-440" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="clientZone" parent="nYiJaO_Tg81eLMcfwVpw-1" style="swimlane;html=1;rounded=1;startSize=28;fontStyle=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Client" vertex="1">
+          <mxGeometry height="330" width="350" as="geometry" />
+        </mxCell>
+        <mxCell id="reactUi" parent="nYiJaO_Tg81eLMcfwVpw-1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="React Web UI&#xa;&#xa;• Produktkatalog&#xa;• Login / Logout&#xa;• Warenkorb&#xa;• Checkout&#xa;• Bestellstatus" vertex="1">
+          <mxGeometry height="190.38461538461542" width="251.99999999999997" x="48.99999999999999" y="69.8076923076923" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

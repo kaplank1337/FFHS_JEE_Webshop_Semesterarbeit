@@ -1,0 +1,24 @@
+# Stage 1: Build
+FROM maven:3.9-eclipse-temurin-21 AS builder
+
+WORKDIR /build
+
+COPY pom.xml .
+COPY user-service/ user-service/
+COPY order-service/ order-service/
+COPY shipping-service/ shipping-service/
+COPY api-gateway/ api-gateway/
+
+RUN mvn clean package -DskipTests -pl api-gateway -am
+
+# Stage 2: Runtime
+FROM payara/micro:6.2024.6
+
+ENV JAVA_TOOL_OPTIONS "-XX:+UseG1GC -XX:MaxRAMPercentage=75.0"
+
+COPY --from=builder /build/api-gateway/target/*.war ${DEPLOYMENT_DIR}/
+
+EXPOSE 8080
+
+CMD ["payara-micro", "--noCluster"]
+
