@@ -6,7 +6,7 @@ Vollständiges Jakarta EE Microservice-Backend für einen webbasierten Getränke
 
 **Technologie-Stack:**
 - **Runtime:** Payara Micro 6 (Jakarta EE 11)
-- **Language:** Java 21
+- **Language:** Java 25
 - **Build:** Maven Multi-Module
 - **Database:** PostgreSQL 16 (3 isolierte Schemas)
 - **Messaging:** Apache ActiveMQ (JMS)
@@ -67,8 +67,11 @@ Vollständiges Jakarta EE Microservice-Backend für einen webbasierten Getränke
 ### Voraussetzungen
 
 - Docker & Docker Compose
-- Java 21 (für lokale Entwicklung)
+- Java 25 (für lokale Entwicklung)
 - Maven 3.9+
+
+### Start mit Service in Intellij und Postgre sowie ActiveMQ lokal
+docker compose up -d postgres activemq
 
 ### Start mit Docker Compose
 
@@ -109,14 +112,14 @@ curl http://localhost:8083/health
 ### 1. Benutzer registrieren
 
 ```bash
-curl -X POST http://localhost:8080/api/auth/register \
+curl -X POST http://localhost:8080/users/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "alice",
-    "email": "alice@example.com",
-    "password": "secure123",
-    "firstName": "Alice",
-    "lastName": "Smith"
+    "username": "john.doe",
+    "email": "john.doe@example.com",
+    "password": "SecurePass123!",
+    "firstName": "John",
+    "lastName": "Doe"
   }'
 ```
 

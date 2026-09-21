@@ -1,6 +1,7 @@
 package com.jee.shop.user.repository;
 
 import com.jee.shop.user.entity.UserEntity;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.NoResultException;
@@ -18,6 +19,7 @@ import java.util.UUID;
  * Lernziel: JPQL Queries, @PersistenceContext, Repository Pattern
  * JPQL Query #1: Find user by username
  */
+@ApplicationScoped
 public class UserRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(UserRepository.class);

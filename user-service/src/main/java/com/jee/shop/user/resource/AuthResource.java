@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  */
 @Path("/auth")
 @RequestScoped
-public class AuthResource {
+public class  AuthResource {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthResource.class);
 
