@@ -3,6 +3,7 @@ package com.jee.shop.user.service;
 import com.jee.shop.user.dto.LoginRequest;
 import com.jee.shop.user.dto.RegisterRequest;
 import com.jee.shop.user.dto.TokenResponse;
+import com.jee.shop.user.dto.TokenPayload;
 import com.jee.shop.user.dto.UserDto;
 import com.jee.shop.user.entity.UserEntity;
 import com.jee.shop.user.entity.UserRole;
@@ -14,8 +15,6 @@ import com.jee.shop.user.security.PasswordEncoder;
 import com.jee.shop.user.security.TokenService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,9 +40,6 @@ public class AuthService {
     private UserRepository userRepository;
 
     private PasswordEncoder passwordEncoder = new PasswordEncoder();
-
-    @PersistenceContext(unitName = "userServicePU")
-    private EntityManager entityManager;
 
     /**
      * Registers a new user.
@@ -83,7 +79,6 @@ public class AuthService {
 
         // Persist user
         userRepository.save(user);
-        entityManager.flush();
 
         logger.info("User registered successfully: {} (ID: {})", request.username(), user.getId());
         return UserMapper.toDto(user);
@@ -152,6 +147,24 @@ public class AuthService {
 
         return userRepository.findById(payload.getSub())
                 .map(UserMapper::toDto);
+    }
+
+    /**
+     * Deletes the account identified by the supplied bearer token.
+     * The token is checked before its subject is used, so callers cannot select
+     * another account by supplying an ID in the request.
+     */
+    @Transactional
+    public void deleteUserFromToken(String authorizationHeader) {
+        TokenPayload payload = tokenService.validateToken(authorizationHeader);
+        if (payload == null) {
+            throw new AuthenticationException("Missing or invalid bearer token");
+        }
+
+        UserEntity user = userRepository.findById(payload.getSub())
+                .orElseThrow(() -> new AuthenticationException("Token user no longer exists"));
+        userRepository.delete(user);
+        logger.info("Deleted account for user ID: {}", payload.getSub());
     }
 }
 

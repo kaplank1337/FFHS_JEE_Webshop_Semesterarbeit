@@ -454,3 +454,8 @@ Kaan Kaplan - FFHS Hochschulmodul Jakarta Enterprise Edition
 - Issues & Bugs: Über Git Issues
 - Contribution: Nicht verfügbar (Semesterarbeit)
 
+
+
+## Projekt starten im Debug!
+
+API Gateway --> 'asadmin start-domain api-gateway-domain'

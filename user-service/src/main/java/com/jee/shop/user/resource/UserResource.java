@@ -1,7 +1,7 @@
 package com.jee.shop.user.resource;
 
 import com.jee.shop.user.dto.UserDto;
-import com.jee.shop.user.exception.UserNotFoundException;
+import com.jee.shop.user.exception.AuthenticationException;
 import com.jee.shop.user.service.AuthService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -42,14 +42,30 @@ public class UserResource {
         String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || authHeader.isEmpty()) {
             logger.warn("No authorization header provided");
-            throw new UserNotFoundException("Authorization header is missing");
+            throw new AuthenticationException("Authorization header is missing");
         }
 
         UserDto user = authService.getUserFromToken(authHeader)
-                .orElseThrow(() -> new UserNotFoundException("User not found or invalid token"));
+                .orElseThrow(() -> new AuthenticationException("User not found or invalid token"));
 
         logger.info("Retrieved user profile: {}", user.id());
         return Response.ok(user).build();
+    }
+
+    /**
+     * Deletes the account represented by the bearer token.
+     * DELETE /users/me
+     */
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteCurrentUser(@Context HttpHeaders headers) {
+        String authHeader = headers.getHeaderString(HttpHeaders.AUTHORIZATION);
+        if (authHeader == null || authHeader.isBlank()) {
+            throw new AuthenticationException("Authorization header is missing");
+        }
+
+        authService.deleteUserFromToken(authHeader);
+        return Response.noContent().build();
     }
 }
 

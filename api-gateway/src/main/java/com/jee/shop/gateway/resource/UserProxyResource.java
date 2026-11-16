@@ -19,7 +19,9 @@ import org.slf4j.LoggerFactory;
 public class UserProxyResource {
 
     private static final Logger logger = LoggerFactory.getLogger(UserProxyResource.class);
-    private static final String USER_SERVICE_URL = "http://localhost:8081/users";
+    private static final String USER_SERVICE_URL = System.getenv().getOrDefault(
+            "USER_SERVICE_URL",
+            "http://localhost:10080/user-service-1.0.0/users");
     private static final Client client = ClientBuilder.newClient();
 
     /**
@@ -74,6 +76,44 @@ public class UserProxyResource {
                     .build();
         } catch (Exception e) {
             logger.error("Error proxying request", e);
+            return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                    .entity("{\"error\": \"User Service unavailable\"}")
+                    .build();
+        }
+    }
+
+    /**
+     * Proxy DELETE requests to User Service (for example DELETE /users/me).
+     * The bearer token is forwarded unchanged so the User Service can identify
+     * and authorize the account being deleted.
+     */
+    @DELETE
+    @Path("/{path: .*}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response proxyDelete(@PathParam("path") String path,
+                                @HeaderParam("Authorization") String authHeader) {
+        String targetUrl = USER_SERVICE_URL + "/" + path;
+        logger.info("Proxying DELETE request to: {}", targetUrl);
+
+        try {
+            var request = client.target(targetUrl).request(MediaType.APPLICATION_JSON);
+            if (authHeader != null) {
+                request = request.header("Authorization", authHeader);
+            }
+
+            Response response = request.delete();
+            int status = response.getStatus();
+            logger.info("Response status: {}", status);
+
+            if (status == Response.Status.NO_CONTENT.getStatusCode() || !response.hasEntity()) {
+                return Response.status(status).build();
+            }
+
+            return Response.status(status)
+                    .entity(response.readEntity(String.class))
+                    .build();
+        } catch (Exception e) {
+            logger.error("Error proxying DELETE request", e);
             return Response.status(Response.Status.SERVICE_UNAVAILABLE)
                     .entity("{\"error\": \"User Service unavailable\"}")
                     .build();

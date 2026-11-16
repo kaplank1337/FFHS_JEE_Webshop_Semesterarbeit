@@ -3,9 +3,9 @@ package com.jee.shop.user.repository;
 import com.jee.shop.user.entity.UserEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.NoResultException;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +16,7 @@ import java.util.UUID;
  * User Repository.
  * Handles database operations for UserEntity.
  *
- * Lernziel: JPQL Queries, @PersistenceContext, Repository Pattern
+ * Lernziel: JPQL Queries, @Inject, Repository Pattern
  * JPQL Query #1: Find user by username
  */
 @ApplicationScoped
@@ -103,6 +103,7 @@ public class UserRepository {
      * @param user the user to persist
      * @return the persisted user with generated ID
      */
+    @Transactional
     public UserEntity save(UserEntity user) {
         logger.info("Persisting user: {}", user.getUsername());
         entityManager.persist(user);
@@ -115,6 +116,7 @@ public class UserRepository {
      * @param user the user to update
      * @return the updated user
      */
+    @Transactional
     public UserEntity update(UserEntity user) {
         logger.info("Updating user: {}", user.getId());
         return entityManager.merge(user);
@@ -125,9 +127,10 @@ public class UserRepository {
      *
      * @param user the user to delete
      */
+    @Transactional
     public void delete(UserEntity user) {
         logger.info("Deleting user: {}", user.getId());
-        entityManager.remove(user);
+        entityManager.remove(entityManager.contains(user) ? user : entityManager.merge(user));
     }
 
     /**

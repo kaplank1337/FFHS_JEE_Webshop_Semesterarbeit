@@ -7,7 +7,7 @@
 
     <persistence-unit name="userServicePU" transaction-type="JTA">
         <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
-        <jta-data-source>jdbc/userDS</jta-data-source>
+        <jta-data-source>java:app/jdbc/userDS</jta-data-source>
 
         <class>com.jee.shop.user.entity.UserEntity</class>
 
@@ -15,14 +15,15 @@
 
         <properties>
             <!-- EclipseLink Properties -->
-            <property name="eclipselink.ddl-generation" value="none"/>
+            <property name="eclipselink.ddl-generation" value="create-tables"/>
             <property name="eclipselink.logging.level" value="FINE"/>
             <property name="eclipselink.logging.level.sql" value="FINE"/>
             <property name="eclipselink.logging.parameters" value="true"/>
 
             <!-- Schema & Catalog -->
             <property name="eclipselink.target-database" value="PostgreSQL"/>
-            <property name="javax.persistence.schema-generation.database.action" value="none"/>
+            <property name="jakarta.persistence.schema-generation.database.action" value="create"/>
+            <property name="eclipselink.ddl-generation.output-mode" value="database"/>
 
             <!-- Connection Pool -->
             <property name="eclipselink.connection-pool.default.min" value="5"/>
