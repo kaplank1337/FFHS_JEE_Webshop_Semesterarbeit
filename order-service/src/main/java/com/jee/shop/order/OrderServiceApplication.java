@@ -9,7 +9,7 @@ import jakarta.ws.rs.core.Application;
  *
  * Lernziel: JAX-RS Application, @ApplicationPath
  */
-@ApplicationPath("/orders")
+@ApplicationPath("/api")
 public class OrderServiceApplication extends Application {
     // Implicit scanning of @Path annotated resources
 }

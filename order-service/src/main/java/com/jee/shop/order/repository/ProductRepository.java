@@ -2,6 +2,7 @@ package com.jee.shop.order.repository;
 
 import com.jee.shop.order.entity.ProductEntity;
 import com.jee.shop.order.entity.ProductCategory;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import java.util.UUID;
  * JPQL Query #2: Find products by category and active status
  * JPQL Query #3: Find all active products ordered by creation date
  */
+@ApplicationScoped
 public class ProductRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(ProductRepository.class);

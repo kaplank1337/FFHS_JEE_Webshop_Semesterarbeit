@@ -85,7 +85,7 @@ services:
       DB_SCHEMA: orders
       JMS_HOST: activemq
       JMS_PORT: 61616
-      USER_SERVICE_URL: http://user-service:8080
+      USER_SERVICE_URL: http://user-service:8080/user-service-1.0.0/users
     depends_on:
       postgres:
         condition: service_started
@@ -141,7 +141,7 @@ services:
       - "8080:8080"
     environment:
       USER_SERVICE_URL: http://user-service:8080/user-service-1.0.0/users
-      ORDER_SERVICE_URL: http://order-service:8080
+      ORDER_SERVICE_URL: http://order-service:8080/order-service-1.0.0/api/orders
       SHIPPING_SERVICE_URL: http://shipping-service:8080
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
     depends_on:

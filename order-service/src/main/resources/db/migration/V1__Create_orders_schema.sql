@@ -1,16 +1,14 @@
 -- V1__Create_orders_schema.sql
 -- Flyway migration for Order Service schema initialization
 
--- Create ENUM types for categories and order status
-CREATE TYPE orders.product_category AS ENUM ('WATER', 'SOFT_DRINKS', 'JUICE', 'BEER', 'COFFEE');
-CREATE TYPE orders.order_status AS ENUM ('CREATED', 'CONFIRMED', 'SHIPPING', 'SHIPPED', 'CANCELLED');
+CREATE SCHEMA IF NOT EXISTS orders;
 
 -- Create products table
 CREATE TABLE orders.product (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL,
     description VARCHAR(500),
-    category orders.product_category NOT NULL,
+    category VARCHAR(50) NOT NULL CHECK (category IN ('WATER', 'SOFT_DRINKS', 'JUICE', 'BEER', 'COFFEE')),
     price NUMERIC(10, 2) NOT NULL,
     stock_quantity INT NOT NULL DEFAULT 0,
     active BOOLEAN NOT NULL DEFAULT true,
@@ -22,7 +20,8 @@ CREATE TABLE orders.product (
 CREATE TABLE orders."order" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,  -- Reference to app_user.user (no FK!)
-    status orders.order_status NOT NULL DEFAULT 'CREATED',
+    status VARCHAR(20) NOT NULL DEFAULT 'CREATED'
+        CHECK (status IN ('CREATED', 'CONFIRMED', 'SHIPPING', 'SHIPPED', 'CANCELLED')),
     total_price NUMERIC(10, 2) NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP

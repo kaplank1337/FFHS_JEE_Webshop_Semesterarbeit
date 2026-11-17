@@ -2,8 +2,9 @@ package com.jee.shop.order.resource;
 
 import com.jee.shop.order.dto.CreateOrderRequest;
 import com.jee.shop.order.dto.OrderDto;
-import com.jee.shop.order.entity.OrderEntity;
+import com.jee.shop.order.dto.UpdateOrderStatusRequest;
 import com.jee.shop.order.mapper.OrderMapper;
+import com.jee.shop.order.security.CurrentUserService;
 import com.jee.shop.order.service.CheckoutService;
 import com.jee.shop.order.service.OrderService;
 import jakarta.enterprise.context.RequestScoped;
@@ -19,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Order REST Resource.
@@ -28,7 +28,9 @@ import java.util.stream.Collectors;
  * Endpoints (authenticated):
  * - POST /orders — Create new order (checkout)
  * - GET /orders — Get user's orders
- * - GET /orders/{id} — Get specific order
+ * - GET /orders/{id} — Get a specific order owned by the user
+ * - PUT /orders/{id}/status — Change status of an owned order
+ * - DELETE /orders/{id} — Delete an owned order
  */
 @Path("/orders")
 @RequestScoped
@@ -41,6 +43,9 @@ public class OrderResource {
 
     @Inject
     private OrderService orderService;
+
+    @Inject
+    private CurrentUserService currentUserService;
 
     /**
      * POST /orders — Create new order (checkout)
@@ -55,9 +60,8 @@ public class OrderResource {
     public Response createOrder(@Valid CreateOrderRequest request, @Context HttpHeaders headers) {
         logger.info("POST /orders - Creating new order");
 
-        // Extract userId from token (simplified - normally via filter)
-        // For now, use a test UUID (in production, extract from JWT)
-        UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+        UUID userId = currentUserService.requireUserId(
+                headers.getHeaderString(HttpHeaders.AUTHORIZATION));
 
         try {
             OrderDto order = checkoutService.createOrder(request, userId);
@@ -86,12 +90,12 @@ public class OrderResource {
     public Response getUserOrders(@Context HttpHeaders headers) {
         logger.debug("GET /orders - Fetching user's orders");
 
-        // Extract userId from token (simplified)
-        UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+        UUID userId = currentUserService.requireUserId(
+                headers.getHeaderString(HttpHeaders.AUTHORIZATION));
 
         List<OrderDto> orders = orderService.getUserOrders(userId).stream()
                 .map(OrderMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
 
         logger.debug("Returning {} orders for user {}", orders.size(), userId);
         return Response.ok(orders).build();
@@ -101,15 +105,18 @@ public class OrderResource {
      * GET /orders/{id} — Get specific order
      *
      * @param orderId the order ID
+     * @param headers HTTP headers (contains Authorization)
      * @return order details or 404
      */
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOrder(@PathParam("id") UUID orderId) {
+    public Response getOrder(@PathParam("id") UUID orderId, @Context HttpHeaders headers) {
         logger.debug("GET /orders/{} - Retrieving order", orderId);
+        UUID userId = currentUserService.requireUserId(
+                headers.getHeaderString(HttpHeaders.AUTHORIZATION));
 
-        OrderDto order = orderService.getOrderById(orderId)
+        OrderDto order = orderService.getOrderByIdForUser(orderId, userId)
                 .map(OrderMapper::toDto)
                 .orElse(null);
 
@@ -121,6 +128,31 @@ public class OrderResource {
 
         logger.debug("Order found: {}", orderId);
         return Response.ok(order).build();
+    }
+
+    /** Updates the status of an order owned by the authenticated user. */
+    @PUT
+    @Path("/{id}/status")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateOrderStatus(@PathParam("id") UUID orderId,
+                                      @Valid UpdateOrderStatusRequest request,
+                                      @Context HttpHeaders headers) {
+        UUID userId = currentUserService.requireUserId(
+                headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+        OrderDto updated = OrderMapper.toDto(
+                orderService.updateOrderStatus(orderId, userId, request.status()));
+        return Response.ok(updated).build();
+    }
+
+    /** Deletes an order owned by the authenticated user. */
+    @DELETE
+    @Path("/{id}")
+    public Response deleteOrder(@PathParam("id") UUID orderId, @Context HttpHeaders headers) {
+        UUID userId = currentUserService.requireUserId(
+                headers.getHeaderString(HttpHeaders.AUTHORIZATION));
+        orderService.deleteOrder(orderId, userId);
+        return Response.noContent().build();
     }
 }
 

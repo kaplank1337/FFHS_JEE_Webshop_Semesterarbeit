@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
     activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "jakarta.jms.Topic"),
         @ActivationConfigProperty(propertyName = "destination", propertyValue = "delivery.status.changed"),
-        @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "AUTO_ACKNOWLEDGE"),
+        @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "Auto-acknowledge"),
         @ActivationConfigProperty(propertyName = "subscriptionDurability", propertyValue = "Durable"),
         @ActivationConfigProperty(propertyName = "clientId", propertyValue = "OrderServiceSubscriber"),
         @ActivationConfigProperty(propertyName = "subscriptionName", propertyValue = "DeliveryStatusChangedOrderSubscription")

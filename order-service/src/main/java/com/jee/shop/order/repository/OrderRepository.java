@@ -2,6 +2,7 @@ package com.jee.shop.order.repository;
 
 import com.jee.shop.order.entity.OrderEntity;
 import com.jee.shop.order.entity.OrderStatus;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import java.util.UUID;
  * JPQL Query #4: Find orders by user, sorted by date
  * JPQL Query #5: Find orders by status
  */
+@ApplicationScoped
 public class OrderRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(OrderRepository.class);

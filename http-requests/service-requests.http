@@ -1,0 +1,93 @@
+### Bestell-Workflow über den API Gateway
+### Vor dem Test username/password auf einen bestehenden User setzen.
+@baseUrl = http://localhost:8080/api-gateway-1.0.0/api
+@username = gateway.test.20261116@example.com
+@password = password123
+
+### Ohne JWT darf keine Bestellung angelegt werden (erwartet 401)
+POST {{baseUrl}}/orders
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "productId": "550e8400-e29b-41d4-a716-446655440011",
+      "quantity": 1
+    }
+  ]
+}
+
+### Login: speichert das JWT für alle Bestell-Requests in dieser Datei
+POST {{baseUrl}}/users/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+> {%
+const body = typeof response.body === "string"
+  ? JSON.parse(response.body)
+  : response.body;
+
+if (response.status !== 200 || !body || !body.accessToken) {
+  client.log("Login fehlgeschlagen: Es wurde kein accessToken zurückgegeben.");
+  client.exit();
+}
+
+client.global.set("auth_token", body.accessToken);
+client.log("JWT auth_token für Bestell-Requests gespeichert.");
+%}
+
+### Bestellung erstellen (Seed-Produkt Mineralwasser 1.5L)
+POST {{baseUrl}}/orders
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "items": [
+    {
+      "productId": "550e8400-e29b-41d4-a716-446655440011",
+      "quantity": 1
+    }
+  ]
+}
+> {%
+const body = typeof response.body === "string"
+  ? JSON.parse(response.body)
+  : response.body;
+
+if (response.status === 201 && body && body.id) {
+  client.global.set("order_id", body.id);
+  client.log("Bestellung erstellt; order_id wurde gespeichert.");
+} else {
+  client.log("Bestellung wurde nicht erstellt; HTTP " + response.status);
+}
+%}
+
+### Eigene Bestellungen anzeigen
+GET {{baseUrl}}/orders
+Authorization: Bearer {{auth_token}}
+
+### Eigene Bestellung abrufen
+GET {{baseUrl}}/orders/{{order_id}}
+Authorization: Bearer {{auth_token}}
+
+### Bestellung ändern: Status von CREATED auf CONFIRMED setzen
+PUT {{baseUrl}}/orders/{{order_id}}/status
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "status": "CONFIRMED"
+}
+
+### Bestellung löschen (löscht nur eigene Bestellung; erwartet 204)
+DELETE {{baseUrl}}/orders/{{order_id}}
+Authorization: Bearer {{auth_token}}
+> {%
+if (response.status === 204) {
+  client.global.clear("order_id");
+  client.log("Bestellung gelöscht.");
+}
+%}

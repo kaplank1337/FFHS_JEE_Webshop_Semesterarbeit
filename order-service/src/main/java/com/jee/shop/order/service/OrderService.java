@@ -2,9 +2,13 @@ package com.jee.shop.order.service;
 
 import com.jee.shop.order.entity.OrderEntity;
 import com.jee.shop.order.entity.OrderStatus;
+import com.jee.shop.order.entity.ProductEntity;
+import com.jee.shop.order.exception.OrderNotFoundException;
 import com.jee.shop.order.repository.OrderRepository;
+import com.jee.shop.order.repository.ProductRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +29,9 @@ public class OrderService {
 
     @Inject
     private OrderRepository orderRepository;
+
+    @Inject
+    private ProductRepository productRepository;
 
     /**
      * Retrieves all orders for a user.
@@ -48,6 +55,12 @@ public class OrderService {
         return orderRepository.findById(orderId);
     }
 
+    /** Returns an order only when it belongs to the authenticated user. */
+    public Optional<OrderEntity> getOrderByIdForUser(UUID orderId, UUID userId) {
+        return orderRepository.findById(orderId)
+                .filter(order -> order.getUserId().equals(userId));
+    }
+
     /**
      * Retrieves orders by status.
      *
@@ -66,14 +79,44 @@ public class OrderService {
      * @param newStatus the new status
      * @return updated order
      */
-    public OrderEntity updateOrderStatus(UUID orderId, OrderStatus newStatus) {
+    @Transactional
+    public OrderEntity updateOrderStatus(UUID orderId, UUID userId, OrderStatus newStatus) {
         logger.info("Updating order {} status to: {}", orderId, newStatus);
 
         OrderEntity order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+                .filter(candidate -> candidate.getUserId().equals(userId))
+                .orElseThrow(() -> new OrderNotFoundException("Order not found: " + orderId));
 
         order.setStatus(newStatus);
         return orderRepository.update(order);
+    }
+
+    /** Trusted internal status update used by delivery events. */
+    @Transactional
+    public OrderEntity updateOrderStatus(UUID orderId, OrderStatus newStatus) {
+        OrderEntity order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException("Order not found: " + orderId));
+        order.setStatus(newStatus);
+        return orderRepository.update(order);
+    }
+
+    /** Deletes an order owned by the authenticated user. Reserved stock is returned for unshipped orders. */
+    @Transactional
+    public void deleteOrder(UUID orderId, UUID userId) {
+        OrderEntity order = orderRepository.findById(orderId)
+                .filter(candidate -> candidate.getUserId().equals(userId))
+                .orElseThrow(() -> new OrderNotFoundException("Order not found: " + orderId));
+
+        if (order.getStatus() != OrderStatus.SHIPPING && order.getStatus() != OrderStatus.SHIPPED) {
+            order.getItems().forEach(item -> productRepository.findById(item.getProductId())
+                    .ifPresent(product -> {
+                        product.increaseStock(item.getQuantity());
+                        productRepository.update(product);
+                    }));
+        }
+
+        orderRepository.delete(order);
+        logger.info("Deleted order {} for user {}", orderId, userId);
     }
 
     /**
