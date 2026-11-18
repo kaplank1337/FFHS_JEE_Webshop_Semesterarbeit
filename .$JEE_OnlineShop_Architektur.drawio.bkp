@@ -67,7 +67,7 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="jwtLabel" parent="backendZone" style="text;html=1;align=center;verticalAlign=middle;fontStyle=1;" value="Bearer Token" vertex="1">
-          <mxGeometry height="30" width="110" x="450" as="geometry" />
+          <mxGeometry height="30" width="110" x="180" as="geometry" />
         </mxCell>
         <mxCell id="nYiJaO_Tg81eLMcfwVpw-2" edge="1" parent="backendZone" source="authService" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="userDb" value="JPA">
           <mxGeometry relative="1" as="geometry">

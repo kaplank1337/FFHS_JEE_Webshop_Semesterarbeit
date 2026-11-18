@@ -2,6 +2,7 @@ package com.jee.shop.shipping.repository;
 
 import com.jee.shop.shipping.entity.ShipmentEntity;
 import com.jee.shop.shipping.entity.ShippingStatus;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import java.util.UUID;
  * Lernziel: JPQL Queries, Query filtering
  * JPQL Query #6: Find shipments by order ID (demonstrates single-result query)
  */
+@ApplicationScoped
 public class ShipmentRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(ShipmentRepository.class);

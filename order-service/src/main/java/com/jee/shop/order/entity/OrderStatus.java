@@ -8,6 +8,7 @@ public enum OrderStatus {
     CONFIRMED("Confirmed"),
     SHIPPING("Shipping"),
     SHIPPED("Shipped"),
+    DELIVERED("Delivered"),
     CANCELLED("Cancelled");
 
     private final String displayName;

@@ -1,39 +1,36 @@
 package com.jee.shop.shipping.messaging;
 
+import com.jee.shop.shipping.entity.ShipmentEntity;
+import com.jee.shop.shipping.service.ShipmentDeliverySimulator;
 import com.jee.shop.shipping.service.ShippingService;
-import jakarta.ejb.ActivationConfigProperty;
-import jakarta.ejb.MessageDriven;
-import jakarta.inject.Inject;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.ejb.DependsOn;
+import jakarta.ejb.Singleton;
+import jakarta.ejb.Startup;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
+import jakarta.jms.Connection;
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
+import jakarta.jms.MessageConsumer;
 import jakarta.jms.MessageListener;
-import jakarta.jms.ObjectMessage;
+import jakarta.jms.Queue;
+import jakarta.jms.Session;
+import jakarta.jms.TextMessage;
+import jakarta.inject.Inject;
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
+import java.io.StringReader;
 import java.util.UUID;
 
-/**
- * OrderCreatedEventListener (Message-Driven Bean).
- * Consumes OrderCreatedEvents from Order Service.
- * Creates shipments automatically.
- *
- * Lernziel: Message-Driven Beans, Queue Consumer, Async Processing,
- *           Idempotent Message Handling
- */
-@MessageDriven(
-    name = "OrderCreatedEventListener",
-    activationConfig = {
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "jakarta.jms.Queue"),
-        @ActivationConfigProperty(propertyName = "destination", propertyValue = "order.created"),
-        @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "AUTO_ACKNOWLEDGE"),
-        @ActivationConfigProperty(propertyName = "maxSession", propertyValue = "10")
-    }
-)
+/** Consumes OrderCreated JSON messages and creates/schedules their shipments. */
+@Singleton
+@Startup
+@DependsOn("ShippingDatabaseMigrator")
 public class OrderCreatedEventListener implements MessageListener {
 
     private static final Logger logger = LoggerFactory.getLogger(OrderCreatedEventListener.class);
@@ -41,79 +38,73 @@ public class OrderCreatedEventListener implements MessageListener {
     @Inject
     private ShippingService shippingService;
 
-    @Override
-    public void onMessage(Message message) {
+    @Inject
+    private ShipmentDeliverySimulator deliverySimulator;
+
+    private Connection connection;
+    private Session session;
+    private MessageConsumer consumer;
+
+    @PostConstruct
+    public void start() {
+        String brokerUrl = "tcp://" + System.getenv().getOrDefault("JMS_HOST", "localhost")
+                + ":" + System.getenv().getOrDefault("JMS_PORT", "61616");
         try {
-            if (message instanceof ObjectMessage) {
-                ObjectMessage objMessage = (ObjectMessage) message;
-                Object payload = objMessage.getObject();
-
-                // Handle both Event class types (Order Service's OrderCreatedEvent)
-                if (payload instanceof OrderCreatedEvent) {
-                    OrderCreatedEvent event = (OrderCreatedEvent) payload;
-
-                    logger.info("Received OrderCreatedEvent: {}", event.getEventId());
-                    logger.debug("Order: {}, User: {}, Items: {}",
-                        event.getOrderId(), event.getUserId(), event.getItems());
-
-                    // Create shipment
-                    shippingService.createShipmentForOrder(event.getOrderId(), event.getUserId());
-
-                    logger.info("Shipment created for Order: {}", event.getOrderId());
-
-                } else {
-                    logger.warn("Unknown message type: {}", payload.getClass());
-                }
-
-            } else {
-                logger.warn("Invalid message type: {}", message.getClass());
-            }
-
+            connection = new ActiveMQConnectionFactory(brokerUrl).createConnection();
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            Queue queue = session.createQueue("order.created");
+            consumer = session.createConsumer(queue);
+            consumer.setMessageListener(this);
+            connection.start();
+            logger.info("Listening to ActiveMQ queue order.created at {}", brokerUrl);
         } catch (JMSException e) {
-            logger.error("Error processing OrderCreatedEvent", e);
-            throw new RuntimeException("Message processing failed", e);
-        } catch (Exception e) {
-            logger.error("Unexpected error in OrderCreatedEventListener", e);
-            throw new RuntimeException("Unexpected error", e);
+            close();
+            throw new IllegalStateException("Could not subscribe to order.created", e);
         }
     }
 
-    /**
-     * OrderCreatedEvent DTO (matching Order Service's event).
-     * Needed for deserialization.
-     */
-    public static class OrderCreatedEvent implements Serializable {
-        private static final long serialVersionUID = 1L;
+    @PreDestroy
+    public void close() {
+        closeQuietly(consumer);
+        closeQuietly(session);
+        closeQuietly(connection);
+    }
 
-        private UUID eventId;
-        private UUID orderId;
-        private UUID userId;
-        private LocalDateTime createdAt;
-        private List<OrderCreatedEventItem> items;
-        private BigDecimal totalPrice;
+    @Override
+    public void onMessage(Message message) {
+        if (!(message instanceof TextMessage textMessage)) {
+            logger.warn("Ignoring non-text OrderCreated message: {}", message.getClass().getName());
+            return;
+        }
 
-        public UUID getEventId() { return eventId; }
-        public UUID getOrderId() { return orderId; }
-        public UUID getUserId() { return userId; }
-        public LocalDateTime getCreatedAt() { return createdAt; }
-        public List<OrderCreatedEventItem> getItems() { return items; }
-        public BigDecimal getTotalPrice() { return totalPrice; }
+        try (JsonReader reader = Json.createReader(new StringReader(textMessage.getText()))) {
+            JsonObject event = reader.readObject();
+            UUID orderId = UUID.fromString(event.getString("orderId"));
+            UUID userId = UUID.fromString(event.getString("userId"));
 
-        public static class OrderCreatedEventItem implements Serializable {
-            private static final long serialVersionUID = 1L;
+            if (shippingService.getShipmentByOrderId(orderId).isPresent()) {
+                logger.info("Ignoring duplicate OrderCreated event for order {}", orderId);
+                return;
+            }
 
-            private UUID productId;
-            private String productName;
-            private int quantity;
-            private BigDecimal unitPrice;
-            private BigDecimal totalPrice;
+            ShipmentEntity shipment = shippingService.createShipmentForOrder(orderId, userId);
+            long seconds = deliverySimulator.schedule(shipment.getId());
+            logger.info("Shipment {} created for order {}; demo delivery is scheduled in {} seconds",
+                    shipment.getId(), orderId, seconds);
+        } catch (Exception e) {
+            logger.error("Could not process OrderCreated message", e);
+            throw new RuntimeException("OrderCreated message processing failed", e);
+        }
+    }
 
-            public UUID getProductId() { return productId; }
-            public String getProductName() { return productName; }
-            public int getQuantity() { return quantity; }
-            public BigDecimal getUnitPrice() { return unitPrice; }
-            public BigDecimal getTotalPrice() { return totalPrice; }
+    private void closeQuietly(AutoCloseable closeable) {
+        if (closeable == null) {
+            return;
+        }
+        try {
+            closeable.close();
+        } catch (Exception e) {
+            logger.debug("Error closing ActiveMQ resource", e);
         }
     }
 }
-

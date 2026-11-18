@@ -2,6 +2,7 @@ package com.jee.shop.shipping.service;
 
 import com.jee.shop.shipping.entity.ShipmentEntity;
 import com.jee.shop.shipping.entity.ShippingStatus;
+import com.jee.shop.shipping.messaging.DeliveryStatusChangedEventPublisher;
 import com.jee.shop.shipping.repository.ShipmentRepository;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
@@ -29,9 +30,8 @@ public class ShippingService {
     @Inject
     private ShipmentRepository shipmentRepository;
 
-    // JMS Event Publisher - integration point for future JMS implementation
-    // @Inject
-    // private DeliveryStatusChangedEventPublisher eventPublisher;
+    @Inject
+    private DeliveryStatusChangedEventPublisher eventPublisher;
 
     @PersistenceContext(unitName = "shippingServicePU")
     private EntityManager entityManager;
@@ -44,7 +44,7 @@ public class ShippingService {
      * @param userId the user ID
      * @return the created shipment
      */
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public ShipmentEntity createShipmentForOrder(UUID orderId, UUID userId) {
         logger.info("Creating shipment for order: {}", orderId);
 
@@ -64,6 +64,7 @@ public class ShippingService {
         entityManager.flush();
 
         logger.info("Shipment created: {} for Order: {}", shipment.getId(), orderId);
+        publishStatusChanged(shipment);
         return shipment;
     }
 
@@ -95,16 +96,18 @@ public class ShippingService {
         entityManager.flush();
 
         logger.info("Shipment status updated to: {} for Shipment: {}", newStatus, shipmentId);
-
-        // Publish event - JMS integration point for future implementation
-        // try {
-        //     eventPublisher.publishDeliveryStatusChangedEvent(shipment);
-        //     logger.info("DeliveryStatusChangedEvent published for shipment: {}", shipmentId);
-        // } catch (Exception e) {
-        //     logger.error("Failed to publish DeliveryStatusChangedEvent", e);
-        // }
+        publishStatusChanged(shipment);
 
         return shipment;
+    }
+
+    private void publishStatusChanged(ShipmentEntity shipment) {
+        try {
+            eventPublisher.publishDeliveryStatusChangedEvent(shipment);
+        } catch (Exception e) {
+            logger.error("Failed to publish status for shipment {}", shipment.getId(), e);
+            throw new IllegalStateException("Could not publish delivery status event", e);
+        }
     }
 
     /**

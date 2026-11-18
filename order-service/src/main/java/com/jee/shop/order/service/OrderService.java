@@ -107,7 +107,9 @@ public class OrderService {
                 .filter(candidate -> candidate.getUserId().equals(userId))
                 .orElseThrow(() -> new OrderNotFoundException("Order not found: " + orderId));
 
-        if (order.getStatus() != OrderStatus.SHIPPING && order.getStatus() != OrderStatus.SHIPPED) {
+        if (order.getStatus() != OrderStatus.SHIPPING
+                && order.getStatus() != OrderStatus.SHIPPED
+                && order.getStatus() != OrderStatus.DELIVERED) {
             order.getItems().forEach(item -> productRepository.findById(item.getProductId())
                     .ifPresent(product -> {
                         product.increaseStock(item.getQuantity());

@@ -9,8 +9,10 @@ import com.jee.shop.order.entity.ProductEntity;
 import com.jee.shop.order.exception.InsufficientStockException;
 import com.jee.shop.order.exception.ProductNotFoundException;
 import com.jee.shop.order.mapper.OrderMapper;
+import com.jee.shop.order.messaging.OrderCreatedEvent;
 import com.jee.shop.order.repository.OrderRepository;
 import com.jee.shop.order.repository.ProductRepository;
+import jakarta.enterprise.event.Event;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -20,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -39,6 +43,9 @@ public class CheckoutService {
 
     @Inject
     private OrderRepository orderRepository;
+
+    @Inject
+    private Event<OrderCreatedEvent> orderCreatedEvents;
 
     @PersistenceContext(unitName = "orderServicePU")
     private EntityManager entityManager;
@@ -109,7 +116,14 @@ public class CheckoutService {
         entityManager.flush();
 
         logger.info("Order persisted: {} with {} items", order.getId(), order.getItems().size());
-        logger.info("OrderCreatedEvent would be published here (async JMS integration)");
+
+        List<OrderCreatedEvent.OrderCreatedEventItem> eventItems = order.getItems().stream()
+                .map(item -> new OrderCreatedEvent.OrderCreatedEventItem(
+                        item.getProductId(), item.getProductName(), item.getQuantity(),
+                        item.getUnitPrice(), item.getTotalPrice()))
+                .toList();
+        orderCreatedEvents.fire(new OrderCreatedEvent(
+                UUID.randomUUID(), order.getId(), userId, LocalDateTime.now(), eventItems, totalPrice));
 
         return OrderMapper.toDto(order);
     }

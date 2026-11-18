@@ -32,6 +32,7 @@
         <!-- Database -->
         <postgresql.version>42.7.1</postgresql.version>
         <flyway.version>9.22.3</flyway.version>
+        <activemq.version>6.3.2</activemq.version>
 
         <!-- Testing -->
         <junit.version>5.9.3</junit.version>
@@ -70,6 +71,12 @@
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-core</artifactId>
                 <version>${flyway.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-client</artifactId>
+                <version>${activemq.version}</version>
             </dependency>
 
             <!-- Logging -->

@@ -40,6 +40,10 @@ client.log("JWT auth_token für Bestell-Requests gespeichert.");
 %}
 
 ### Bestellung erstellen (Seed-Produkt Mineralwasser 1.5L)
+# Nach dem Commit veröffentlicht Order-Service ein OrderCreated-Ereignis per JMS.
+# Der Shipping-Service legt die Lieferung an und meldet Statusänderungen zurück.
+# Für den Demo-Verlauf danach GET /orders/{{order_id}} wiederholen:
+# CONFIRMED -> SHIPPING -> SHIPPED -> DELIVERED (insgesamt nach 10–30 Sekunden).
 POST {{baseUrl}}/orders
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}

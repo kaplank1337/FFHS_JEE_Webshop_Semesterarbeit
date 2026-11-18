@@ -29,7 +29,7 @@ services:
     environment:
       ACTIVEMQ_OPTS: "-Xms256m -Xmx512m"
     healthcheck:
-      test: ["CMD", "bash", "-c", "curl -f http://localhost:8161/admin/ || exit 1"]
+      test: ["CMD", "bash", "-ec", "exec 3<>/dev/tcp/127.0.0.1/61616"]
       interval: 15s
       timeout: 10s
       retries: 5

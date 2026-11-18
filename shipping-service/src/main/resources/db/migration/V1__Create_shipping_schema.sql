@@ -1,15 +1,15 @@
 -- V1__Create_shipping_schema.sql
 -- Flyway migration for Shipping Service schema initialization
 
--- Create ENUM type for shipping status
-CREATE TYPE shipping.shipping_status AS ENUM ('PREPARING', 'READY_FOR_SHIPMENT', 'SHIPPED', 'DELIVERED', 'CANCELLED');
+CREATE SCHEMA IF NOT EXISTS shipping;
 
 -- Create shipments table
 CREATE TABLE shipping.shipment (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id UUID NOT NULL,     -- Reference to orders.order (no FK!)
     user_id UUID NOT NULL,      -- Reference to app_user.user (no FK!)
-    shipping_status shipping.shipping_status NOT NULL DEFAULT 'PREPARING',
+    shipping_status VARCHAR(30) NOT NULL DEFAULT 'PREPARING'
+        CHECK (shipping_status IN ('PREPARING', 'READY_FOR_SHIPMENT', 'SHIPPED', 'DELIVERED', 'CANCELLED')),
     tracking_number VARCHAR(50),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
