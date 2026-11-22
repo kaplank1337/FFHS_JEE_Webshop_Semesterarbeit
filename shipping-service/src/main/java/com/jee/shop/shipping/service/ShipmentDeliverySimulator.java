@@ -28,15 +28,10 @@ public class ShipmentDeliverySimulator {
     private ShippingService shippingService;
 
     public long schedule(UUID shipmentId) {
-        long totalSeconds = ThreadLocalRandom.current().nextLong(10, 31);
-        long readyDelay = Math.max(1, totalSeconds / 3);
-        long shippedDelay = Math.max(readyDelay + 1, (totalSeconds * 2) / 3);
-
-        scheduleTransition(shipmentId, ShippingStatus.READY_FOR_SHIPMENT, readyDelay);
-        scheduleTransition(shipmentId, ShippingStatus.SHIPPED, shippedDelay);
+        long totalSeconds = ThreadLocalRandom.current().nextLong(1, 11);
         scheduleTransition(shipmentId, ShippingStatus.DELIVERED, totalSeconds);
 
-        logger.info(() -> "Scheduled demo delivery for shipment " + shipmentId + " over " + totalSeconds + " seconds");
+        logger.info(() -> "Scheduled demo delivery for shipment " + shipmentId + " in " + totalSeconds + " seconds");
         return totalSeconds;
     }
 

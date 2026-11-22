@@ -1,6 +1,7 @@
 package com.jee.shop.shipping.messaging;
 
 import com.jee.shop.shipping.entity.ShipmentEntity;
+import com.jee.shop.shipping.entity.ShippingStatus;
 import com.jee.shop.shipping.service.ShipmentDeliverySimulator;
 import com.jee.shop.shipping.service.ShippingService;
 import jakarta.annotation.PostConstruct;
@@ -88,6 +89,10 @@ public class OrderCreatedEventListener implements MessageListener {
             }
 
             ShipmentEntity shipment = shippingService.createShipmentForOrder(orderId, userId);
+            // Move through the shipment states immediately so the order service can
+            // publish "Wird geliefert" while the simulated delivery is in progress.
+            shippingService.updateShipmentStatus(shipment.getId(), ShippingStatus.READY_FOR_SHIPMENT);
+            shippingService.updateShipmentStatus(shipment.getId(), ShippingStatus.SHIPPED);
             long seconds = deliverySimulator.schedule(shipment.getId());
             logger.info("Shipment {} created for order {}; demo delivery is scheduled in {} seconds",
                     shipment.getId(), orderId, seconds);

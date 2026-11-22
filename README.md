@@ -90,12 +90,26 @@ docker compose down
 ```
 
 **Service-URLs nach dem Start:**
+- **Webshop UI:** http://localhost:3000
 - **API Gateway:** http://localhost:8080
 - **User Service:** http://localhost:8081
 - **Order Service:** http://localhost:8082
 - **Shipping Service:** http://localhost:8083
 - **ActiveMQ Web Console:** http://localhost:8161
 - **Swagger UI (Order Service):** http://localhost:8082/swagger-ui.html
+
+Das UI spricht in Docker Compose das API-Gateway unter `http://localhost:8080/api` an.
+Für lokale Entwicklung mit dem in IntelliJ gestarteten GlassFish-Gateway:
+
+```bash
+cd webshop-ui
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+Das UI läuft ebenfalls auf Port `3000` und verwendet dann den GlassFish-Kontext
+`http://localhost:8080/api-gateway-1.0.0/api`.
 
 ### Health Check
 

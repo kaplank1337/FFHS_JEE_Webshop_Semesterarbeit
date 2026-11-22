@@ -142,6 +142,7 @@ services:
     environment:
       USER_SERVICE_URL: http://user-service:8080/user-service-1.0.0/users
       ORDER_SERVICE_URL: http://order-service:8080/order-service-1.0.0/api/orders
+      ORDER_SERVICE_API_URL: http://order-service:8080/order-service-1.0.0/api
       SHIPPING_SERVICE_URL: http://shipping-service:8080
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
     depends_on:
@@ -157,6 +158,25 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    networks:
+      - jee-shop-network
+
+  webshop-ui:
+    build:
+      context: ./webshop-ui
+      dockerfile: Dockerfile
+    container_name: jee-shop-webshop-ui
+    ports:
+      - "3000:3000"
+    environment:
+      # Browser connects to the host-published Gateway. Payara deploys the
+      # Gateway WAR as ROOT.war in Docker, so its API path is /api.
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080/api}
+      # WebSocket is served by the Order-Service, published on host port 8082.
+      VITE_ORDER_WS_URL: ${VITE_ORDER_WS_URL:-ws://localhost:8082/order-service-1.0.0/ws/orders}
+    volumes:
+      - ./webshop-ui:/app
+      - /app/node_modules
     networks:
       - jee-shop-network
 
