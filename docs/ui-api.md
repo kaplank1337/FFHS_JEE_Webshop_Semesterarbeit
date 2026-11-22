@@ -1,6 +1,6 @@
 # REST-Schnittstelle für das UI
 
-Diese Übersicht beschreibt die aktuell implementierten REST-Routen, Live-Statusmeldungen und die Seed-Getränke. Das API-Gateway ist der Browser-Einstiegspunkt für REST-Aufrufe. Der Order-Service stellt zusätzlich den authentifizierten WebSocket für Bestellstatus bereit.
+Diese Übersicht beschreibt die aktuell implementierten REST-Routen, Live-Statusmeldungen und die Seed-Getränke. Das API-Gateway ist der Browser-Einstiegspunkt für REST-Aufrufe und leitet den WebSocket transparent an den Shipping-Service weiter, der Statusupdates an angemeldete Benutzer sendet.
 
 ## Lokale URLs
 
@@ -9,7 +9,7 @@ Diese Übersicht beschreibt die aktuell implementierten REST-Routen, Live-Status
 | API-Gateway | `http://localhost:8080/api-gateway-1.0.0/api` |
 | User-Service direkt (nur intern/Debugging) | `http://localhost:10080/user-service-1.0.0/users` |
 | Order-Service direkt (nur intern/Debugging) | `http://localhost:11080/order-service-1.0.0/api` |
-| Bestellstatus-WebSocket | `ws://localhost:11080/order-service-1.0.0/ws/orders` |
+| Lieferstatus-WebSocket | `ws://localhost:12080/shipping-service-1.0.0/ws/orders` |
 | Shipping-Service direkt (nur intern/Debugging) | `http://localhost:12080/shipping-service-1.0.0/shipments` |
 
 Die Services müssen in den zugehörigen GlassFish-Domains laufen. PostgreSQL und ActiveMQ müssen ebenfalls erreichbar sein. Das Gateway leitet Benutzer- und Bestellaufrufe sowie Produkt-Leseaufrufe an die Services weiter. Browser-Aufrufe sollen ausschliesslich die Gateway-URL verwenden.
@@ -194,7 +194,7 @@ Antwort: Liste der Bestellungen des angemeldeten Benutzers. Einzelne Bestellung:
 
 Nach erfolgreichem `POST /orders` antwortet der Order-Service mit `201 Created` und speichert den Status `CREATED`. Erst nach dieser Backend-Antwort zeigt das UI die Bestellung als erstellt an. Danach wird die Bestellung über JMS an den Shipping-Service übergeben. Sobald die Lieferung beginnt, steht der Status auf `SHIPPED` (im UI „Wird geliefert“); nach einer zufälligen Wartezeit von 1 bis 10 Sekunden wechselt er auf `DELIVERED` („Geliefert“).
 
-Die Bestellliste lädt beim Öffnen den gespeicherten Status über `GET /orders`. Während die Seite geöffnet ist, verbindet sich das UI mit `ws://localhost:11080/order-service-1.0.0/ws/orders` und sendet nach dem Verbindungsaufbau das JWT als erstes JSON-Frame:
+Die Bestellliste lädt beim Öffnen den gespeicherten Status über `GET /orders`. Während die Seite geöffnet ist, verbindet sich das UI mit dem WebSocket des Shipping-Service und sendet nach dem Verbindungsaufbau das JWT als erstes JSON-Frame:
 
 ```json
 {"token":"<accessToken>"}
@@ -206,7 +206,7 @@ Nach erfolgreicher Authentifizierung erhält nur der angemeldete Bestellbesitzer
 {"type":"ORDER_STATUS_CHANGED","orderId":"<uuid>","status":"DELIVERED"}
 ```
 
-Für Docker Compose ist die vom Browser erreichbare WebSocket-URL `ws://localhost:8082/order-service-1.0.0/ws/orders`. Das UI verwendet lokal standardmässig Port `11080`; abweichende URLs können mit `VITE_ORDER_WS_URL` gesetzt werden.
+In der Docker-Produktionskonfiguration nutzt der Browser ausschliesslich das Gateway: `ws://localhost:8080/ws/orders`. Das Gateway leitet den WebSocket intern an den Shipping-Service weiter. Die lokale IntelliJ-Konfiguration verbindet das UI direkt mit `ws://localhost:12080/shipping-service-1.0.0/ws/orders`; die URL kann über `VITE_ORDER_WS_URL` angepasst werden.
 
 ### Status ändern und Bestellung löschen
 

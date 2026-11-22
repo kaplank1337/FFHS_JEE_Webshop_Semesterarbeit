@@ -50,6 +50,17 @@
         <maven.shade.plugin.version>3.5.0</maven.shade.plugin.version>
     </properties>
 
+    <profiles>
+        <!-- Docker images use this named build profile; runtime endpoints and
+             secrets are supplied by the production Compose environment. -->
+        <profile>
+            <id>prod</id>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
+        </profile>
+    </profiles>
+
      <dependencyManagement>
         <dependencies>
             <!-- Jakarta EE API (directly, without Payara BOM) -->

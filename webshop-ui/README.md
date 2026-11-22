@@ -30,23 +30,23 @@ debugged GlassFish Gateway at `http://localhost:8080/api-gateway-1.0.0/api`.
 If the Gateway runs in Docker instead, set `VITE_API_BASE_URL=http://localhost:8080/api`
 in `.env.local`.
 
-## Run with Docker Compose
+## Docker production profile
 
-From the repository root, start the complete stack, including the UI:
-
-```sh
-docker compose up --build -d
-```
-
-Open `http://localhost:3000`. In Compose the UI uses the host-published Gateway
-at `http://localhost:8080/api`. Stop the stack with `docker compose down`.
-
-To start only the UI container while using a separately running local Gateway:
+The production UI is built into a Node server image and stays on the internal
+Docker network. Only the Gateway publishes a port; open `http://localhost:8080`
+to reach both the UI and `/api`. From the repository root:
 
 ```sh
-VITE_API_BASE_URL=http://localhost:8080/api-gateway-1.0.0/api docker compose up --build webshop-ui
+cp .env.prod.example .env.prod
+# Set non-placeholder DB_PASSWORD and JWT_SECRET values in .env.prod.
+docker compose --env-file .env.prod -f docker-compose.prod.yml up --build -d
 ```
 
-The environment variable selects the local GlassFish context root for this
-command. The default Compose setting (`http://localhost:8080/api`) is used when
-the full Docker backend stack is started.
+Stop the production stack with:
+
+```sh
+docker compose --env-file .env.prod -f docker-compose.prod.yml down
+```
+
+The normal `docker-compose.yml` is the development stack. It exposes local
+service ports so IntelliJ and the UI on port 3000 can connect during debugging.

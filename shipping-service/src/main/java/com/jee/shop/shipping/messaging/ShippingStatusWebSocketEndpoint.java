@@ -1,6 +1,6 @@
-package com.jee.shop.order.messaging;
+package com.jee.shop.shipping.messaging;
 
-import com.jee.shop.order.security.CurrentUserService;
+import com.jee.shop.shipping.security.CurrentUserService;
 import jakarta.enterprise.inject.spi.CDI;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -9,7 +9,6 @@ import jakarta.websocket.CloseReason;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnError;
 import jakarta.websocket.OnMessage;
-import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
 
@@ -18,17 +17,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Authenticated WebSocket endpoint for live order status changes. */
+/** Authenticated WebSocket endpoint owned by Shipping-Service for delivery updates. */
 @ServerEndpoint("/ws/orders")
-public class OrderStatusWebSocketEndpoint {
+public class ShippingStatusWebSocketEndpoint {
 
-    private static final String USER_ID_PROPERTY = OrderStatusWebSocketEndpoint.class.getName() + ".userId";
+    private static final String USER_ID_PROPERTY = ShippingStatusWebSocketEndpoint.class.getName() + ".userId";
     private static final ConcurrentHashMap<UUID, Set<Session>> SESSIONS_BY_USER = new ConcurrentHashMap<>();
-
-    @OnOpen
-    public void onOpen(Session session) {
-        // The client authenticates in its first message; until then it receives no events.
-    }
 
     @OnMessage
     public void onMessage(String message, Session session) {
@@ -64,7 +58,7 @@ public class OrderStatusWebSocketEndpoint {
         removeSession(session);
     }
 
-    /** Sends a persisted status change only to sockets authenticated as the order's owner. */
+    /** Pushes a persisted shipping state to connected sockets belonging to this order's owner. */
     public static void publishStatusChanged(UUID userId, UUID orderId, String status) {
         Set<Session> sessions = SESSIONS_BY_USER.get(userId);
         if (sessions == null || sessions.isEmpty()) {

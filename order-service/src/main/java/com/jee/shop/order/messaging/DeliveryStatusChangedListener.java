@@ -80,9 +80,7 @@ public class DeliveryStatusChangedListener implements MessageListener {
             UUID orderId = UUID.fromString(event.getString("orderId"));
             String shippingStatus = event.getString("status");
             OrderStatus orderStatus = mapShippingToOrderStatus(shippingStatus);
-            var order = orderService.updateOrderStatus(orderId, orderStatus);
-            OrderStatusWebSocketEndpoint.publishStatusChanged(
-                    order.getUserId(), order.getId(), orderStatus.name());
+            orderService.updateOrderStatus(orderId, orderStatus);
             logger.info("Order {} status changed to {} from delivery event", orderId, orderStatus);
         } catch (Exception e) {
             logger.error("Could not process DeliveryStatusChanged event", e);

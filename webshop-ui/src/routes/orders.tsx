@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { RequireAuth } from "@/components/RequireAuth";
-import { api, chf, ORDER_STATUS_WS_URL, STATUS_LABELS, type Order, type OrderStatus } from "@/lib/api";
+import { api, chf, orderStatusWebSocketUrl, STATUS_LABELS, type Order, type OrderStatus } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/orders")({
@@ -31,7 +31,7 @@ function Orders() {
 
     const connect = () => {
       if (stopped) return;
-      socket = new WebSocket(ORDER_STATUS_WS_URL);
+      socket = new WebSocket(orderStatusWebSocketUrl());
       socket.onopen = () => socket?.send(JSON.stringify({ token }));
       socket.onmessage = (message) => {
         try {

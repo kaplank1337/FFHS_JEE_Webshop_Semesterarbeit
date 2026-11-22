@@ -61,7 +61,7 @@ services:
       activemq:
         condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8080/user-service-1.0.0/users/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -94,7 +94,7 @@ services:
       user-service:
         condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8080/order-service-1.0.0/api/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -118,13 +118,14 @@ services:
       DB_SCHEMA: shipping
       JMS_HOST: activemq
       JMS_PORT: 61616
+      USER_SERVICE_URL: http://user-service:8080/user-service-1.0.0/users
     depends_on:
       postgres:
         condition: service_started
       activemq:
         condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8080/shipping-service-1.0.0/shipments/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -153,7 +154,7 @@ services:
       shipping-service:
         condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8080/api/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -164,7 +165,7 @@ services:
   webshop-ui:
     build:
       context: ./webshop-ui
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: jee-shop-webshop-ui
     ports:
       - "3000:3000"
@@ -172,8 +173,8 @@ services:
       # Browser connects to the host-published Gateway. Payara deploys the
       # Gateway WAR as ROOT.war in Docker, so its API path is /api.
       VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080/api}
-      # WebSocket is served by the Order-Service, published on host port 8082.
-      VITE_ORDER_WS_URL: ${VITE_ORDER_WS_URL:-ws://localhost:8082/order-service-1.0.0/ws/orders}
+      # Local Docker stack publishes Shipping-Service for browser WebSocket debug.
+      VITE_ORDER_WS_URL: ${VITE_ORDER_WS_URL:-ws://localhost:8083/shipping-service-1.0.0/ws/orders}
     volumes:
       - ./webshop-ui:/app
       - /app/node_modules

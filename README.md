@@ -66,40 +66,33 @@ Vollständiges Jakarta EE Microservice-Backend für einen webbasierten Getränke
 
 ### Voraussetzungen
 
-- Docker & Docker Compose
-- Java 25 (für lokale Entwicklung)
-- Maven 3.9+
+- Docker und Docker Compose
+- Java 25 und IntelliJ IDEA für die lokale Entwicklung
+- Node.js und npm für das UI
+- Maven 3.9+ zum manuellen Bauen der Services
 
-### Start mit Service in Intellij und Postgre sowie ActiveMQ lokal
-docker compose up -d postgres activemq
+Es gibt zwei Abläufe: lokal mit IntelliJ-Debugger und Docker nur für PostgreSQL
+und ActiveMQ, oder vollständig in Docker mit nur dem API-Gateway als
+veröffentlichtem Port.
 
-### Start mit Docker Compose
+### Umgebung 1: lokal entwickeln und debuggen
+
+PostgreSQL und ActiveMQ laufen in Docker. Die vier Java-Services startest du
+über die vorhandenen GlassFish-Konfigurationen in IntelliJ mit **Debug**.
+Das UI läuft separat mit `npm run dev` auf Port `3000`.
+
+Im Projektverzeichnis startest du zuerst die Infrastruktur:
 
 ```bash
-# Konfigurationsdatei kopieren
-cp .env.example .env
-
-# Services starten (builds automatisch)
-docker compose up --build -d
-
-# Logs folgen
-docker compose logs -f
-
-# Services stoppen
-docker compose down
+docker compose up -d postgres activemq
+docker compose ps
 ```
 
-**Service-URLs nach dem Start:**
-- **Webshop UI:** http://localhost:3000
-- **API Gateway:** http://localhost:8080
-- **User Service:** http://localhost:8081
-- **Order Service:** http://localhost:8082
-- **Shipping Service:** http://localhost:8083
-- **ActiveMQ Web Console:** http://localhost:8161
-- **Swagger UI (Order Service):** http://localhost:8082/swagger-ui.html
+Prüfe, dass `postgres` und `activemq` den Status `running` oder `healthy` haben.
+Starte dann in IntelliJ **API-Gateway**, **User-Service**, **Order-Service** und
+**Shipping-Service** über ihre Debug-Konfigurationen.
 
-Das UI spricht in Docker Compose das API-Gateway unter `http://localhost:8080/api` an.
-Für lokale Entwicklung mit dem in IntelliJ gestarteten GlassFish-Gateway:
+Starte das UI in einem zweiten Terminal:
 
 ```bash
 cd webshop-ui
@@ -108,18 +101,74 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Das UI läuft ebenfalls auf Port `3000` und verwendet dann den GlassFish-Kontext
-`http://localhost:8080/api-gateway-1.0.0/api`.
+Öffne [http://localhost:3000](http://localhost:3000). Lokal verwendet das UI
+das API-Gateway unter
+`http://localhost:8080/api-gateway-1.0.0/api`; die Live-Lieferupdates kommen
+per WebSocket vom lokal gestarteten Shipping-Service.
 
-### Health Check
+| Komponente | Lokale Adresse |
+|---|---|
+| UI | `http://localhost:3000` |
+| API-Gateway (IntelliJ) | `http://localhost:8080/api-gateway-1.0.0/api` |
+| User-Service (IntelliJ) | `http://localhost:10080/user-service-1.0.0/users` |
+| Order-Service (IntelliJ) | `http://localhost:11080/order-service-1.0.0/api` |
+| Shipping-Service WebSocket (IntelliJ) | `ws://localhost:12080/shipping-service-1.0.0/ws/orders` |
+| PostgreSQL (Docker) | `localhost:5432` |
+| ActiveMQ (Docker) | `localhost:61616` |
+| ActiveMQ Web Console | `http://localhost:8161` |
+
+Wenn du mit dem lokalen Debuggen fertig bist, stoppst du nur die beiden
+Infrastruktur-Container:
 
 ```bash
-# Alle Services prüfen
-curl http://localhost:8080/health
-curl http://localhost:8081/health
-curl http://localhost:8082/health
-curl http://localhost:8083/health
+docker compose stop postgres activemq
 ```
+
+### Umgebung 2: alles mit Docker starten (`prod`)
+
+Das Produktionsprofil baut UI und Services als Images und startet zusätzlich
+PostgreSQL und ActiveMQ. Von aussen ist nur das API-Gateway auf Port `8080`
+erreichbar. Die UI läuft intern auf Port `3000` und öffnet sich über das
+Gateway unter [http://localhost:8080](http://localhost:8080). REST geht über den
+Java-Gateway-Kern; WebSocket-Verbindungen werden intern an den Shipping-Service
+weitergeleitet.
+
+Die lokale Datei `.env.prod` enthält die Zugangsdaten für PostgreSQL und JWT.
+Sie wird nicht ins Git-Repository eingecheckt. Starte den vollständigen Stack:
+
+```bash
+docker compose --env-file .env.prod -f docker-compose.prod.yml up --build -d
+```
+
+Status, Logs und Beenden:
+
+```bash
+# Container-Status
+docker compose --env-file .env.prod -f docker-compose.prod.yml ps
+
+# Logs aller Container verfolgen
+docker compose --env-file .env.prod -f docker-compose.prod.yml logs -f
+
+# Logs eines einzelnen Services, zum Beispiel Shipping-Service
+docker compose --env-file .env.prod -f docker-compose.prod.yml logs -f shipping-service
+
+# Stack stoppen (die Datenbankdaten im Volume bleiben erhalten)
+docker compose --env-file .env.prod -f docker-compose.prod.yml down
+```
+
+Prüfe das Gateway und den Produkt-Endpunkt:
+
+```bash
+curl http://localhost:8080/health
+curl http://localhost:8080/api/products
+```
+
+`docker-compose.yml` ist für die lokale Entwicklungsumgebung gedacht und
+veröffentlicht zusätzliche Ports für IntelliJ und lokale Tools.
+
+Falls `.env.prod` in einer frischen Kopie des Repositories noch fehlt, erstelle
+sie mit `cp .env.prod.example .env.prod` und ersetze darin `DB_PASSWORD` sowie
+`JWT_SECRET` durch eigene Werte.
 
 ## 📡 API Beispiele
 
@@ -195,21 +244,18 @@ curl http://localhost:8080/api/shipments \
 
 ## 🔌 WebSocket Integration
 
-Der Order Service stellt einen WebSocket Endpoint für Live-Updates bereit.
+Der Shipping Service stellt den authentifizierten WebSocket für Lieferupdates bereit.
 
-**Endpoint:** `ws://localhost:8082/ws/orders/{userId}`
+**Docker-Produktionsendpoint:** `ws://localhost:8080/ws/orders`
 
-**Authentifizierung:** Bearer Token im Query-Parameter oder Header
+**Authentifizierung:** Das UI sendet das JWT nach dem Öffnen als erste JSON-Nachricht.
 
 **Example (JavaScript):**
 
 ```javascript
 const token = "your-jwt-token";
-const userId = "550e8400-e29b-41d4-a716-446655440000";
-
-const ws = new WebSocket(
-  `ws://localhost:8082/ws/orders/${userId}?token=${token}`
-);
+const ws = new WebSocket("ws://localhost:8080/ws/orders");
+ws.onopen = () => ws.send(JSON.stringify({ token }));
 
 ws.onopen = () => {
   console.log("Connected to order status updates");
@@ -218,13 +264,7 @@ ws.onopen = () => {
 ws.onmessage = (event) => {
   const message = JSON.parse(event.data);
   console.log("Status Update:", message);
-  // {
-  //   "type": "DELIVERY_STATUS_CHANGED",
-  //   "orderId": "...",
-  //   "shipmentId": "...",
-  //   "status": "SHIPPED",
-  //   "timestamp": "..."
-  // }
+  // { "type": "ORDER_STATUS_CHANGED", "orderId": "...", "status": "DELIVERED" }
 };
 
 ws.onerror = (error) => {

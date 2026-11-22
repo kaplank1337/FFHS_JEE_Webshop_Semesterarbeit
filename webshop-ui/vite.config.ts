@@ -10,6 +10,9 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
+  // Keep Lovable's hosted Cloudflare preset, but build a Node HTTP server for
+  // the Docker production profile.
+  ...(process.env["DOCKER_BUILD"] === "true" ? { nitro: { preset: "node-server" } } : {}),
   vite: {
     server: {
       host: "0.0.0.0",

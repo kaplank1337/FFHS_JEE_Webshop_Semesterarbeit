@@ -3,6 +3,7 @@ package com.jee.shop.shipping.service;
 import com.jee.shop.shipping.entity.ShipmentEntity;
 import com.jee.shop.shipping.entity.ShippingStatus;
 import com.jee.shop.shipping.messaging.DeliveryStatusChangedEventPublisher;
+import com.jee.shop.shipping.messaging.ShippingStatusWebSocketEndpoint;
 import com.jee.shop.shipping.repository.ShipmentRepository;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
@@ -104,10 +105,22 @@ public class ShippingService {
     private void publishStatusChanged(ShipmentEntity shipment) {
         try {
             eventPublisher.publishDeliveryStatusChangedEvent(shipment);
+            ShippingStatusWebSocketEndpoint.publishStatusChanged(
+                    shipment.getUserId(), shipment.getOrderId(), mapToOrderStatus(shipment.getShippingStatus()));
         } catch (Exception e) {
             logger.error("Failed to publish status for shipment {}", shipment.getId(), e);
             throw new IllegalStateException("Could not publish delivery status event", e);
         }
+    }
+
+    private String mapToOrderStatus(ShippingStatus status) {
+        return switch (status) {
+            case PREPARING -> "CONFIRMED";
+            case READY_FOR_SHIPMENT -> "SHIPPING";
+            case SHIPPED -> "SHIPPED";
+            case DELIVERED -> "DELIVERED";
+            case CANCELLED -> "CANCELLED";
+        };
     }
 
     /**

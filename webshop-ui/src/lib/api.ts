@@ -11,9 +11,15 @@ export const GATEWAY_URL = (
   import.meta.env["VITE_API_BASE_URL"] || "http://localhost:8080/api-gateway-1.0.0/api"
 ).replace(/\/$/, "");
 
-// WebSocket is hosted by the Order-Service; REST traffic still goes through the Gateway.
-export const ORDER_STATUS_WS_URL = import.meta.env["VITE_ORDER_WS_URL"]
-  || "ws://localhost:11080/order-service-1.0.0/ws/orders";
+// In production the Gateway forwards this path to Shipping-Service. Locally, the
+// GlassFish Shipping domain remains directly reachable for IntelliJ debugging.
+export function orderStatusWebSocketUrl(): string {
+  const configured = import.meta.env["VITE_ORDER_WS_URL"] || "ws://localhost:12080/shipping-service-1.0.0/ws/orders";
+  if (!configured.startsWith("/")) return configured;
+  const url = new URL(configured, window.location.href);
+  url.protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return url.toString();
+}
 
 export class ApiError extends Error { constructor(public status: number, msg: string) { super(msg); } }
 

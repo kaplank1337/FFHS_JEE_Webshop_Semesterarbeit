@@ -8,8 +8,9 @@ COPY user-service/ user-service/
 COPY order-service/ order-service/
 COPY shipping-service/ shipping-service/
 COPY api-gateway/ api-gateway/
+COPY docker/prod-resources/user-glassfish-resources.xml user-service/src/main/webapp/WEB-INF/glassfish-resources.xml
 
-RUN mvn clean package -DskipTests -pl user-service -am
+RUN mvn -Pprod clean package -DskipTests -pl user-service -am
 
 # Stage 2: Runtime
 FROM payara/micro:6.2024.6-jdk21
