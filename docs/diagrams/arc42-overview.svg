@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="670" viewBox="0 0 1200 670" role="img" aria-labelledby="title desc">
+  <title id="title">Landkarte der arc42-Dokumentation</title>
+  <desc id="desc">Die Ziele und Randbedingungen führen über Kontext und Lösungsstrategie zu Baustein-, Laufzeit- und Verteilungssicht. Querschnittskonzepte, Entscheidungen, Qualitätsanforderungen und Risiken ergänzen diese Sichten.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#718096"/></marker>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#173b3b" flood-opacity=".12"/></filter>
+    <style>
+      .title{font:700 26px system-ui,-apple-system,Segoe UI,sans-serif;fill:#123c3d}.subtitle{font:14px system-ui,-apple-system,Segoe UI,sans-serif;fill:#587071}
+      .box{rx:14;stroke-width:1.5;filter:url(#shadow)}.h{font:700 15px system-ui,-apple-system,Segoe UI,sans-serif;fill:#123c3d}.t{font:13px system-ui,-apple-system,Segoe UI,sans-serif;fill:#294c4d}.num{font:700 13px system-ui,-apple-system,Segoe UI,sans-serif;fill:#fff}
+      .link{stroke:#718096;stroke-width:2;fill:none;marker-end:url(#arrow)}.soft{stroke:#a0aec0;stroke-width:1.5;stroke-dasharray:5 5;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1200" height="670" rx="22" fill="#f7faf8"/>
+  <text x="42" y="48" class="title">arc42 – Landkarte der Dokumentation</text>
+  <text x="42" y="73" class="subtitle">Die Kapitel verbinden Ziele und Kontext mit den Architekturansichten und den übergreifenden Entscheidungen.</text>
+
+  <!-- Ziele, Kontext und Qualitätsziele -->
+  <rect x="42" y="105" width="244" height="92" class="box" fill="#d8f1e5" stroke="#87c8a8"/>
+  <circle cx="66" cy="129" r="14" fill="#31936a"/><text x="66" y="134" text-anchor="middle" class="num">1</text>
+  <text x="90" y="134" class="h">Einführung und Ziele</text><text x="62" y="162" class="t">Aufgabe · Stakeholder · Qualitätsziele</text>
+  <rect x="318" y="105" width="226" height="92" class="box" fill="#e4f3e9" stroke="#9ac7a4"/>
+  <circle cx="342" cy="129" r="14" fill="#4e9b67"/><text x="342" y="134" text-anchor="middle" class="num">2</text>
+  <text x="366" y="134" class="h">Randbedingungen</text><text x="338" y="162" class="t">Fachlich · technisch · organisatorisch</text>
+  <rect x="576" y="105" width="254" height="92" class="box" fill="#e4f3e9" stroke="#9ac7a4"/>
+  <circle cx="600" cy="129" r="14" fill="#4e9b67"/><text x="600" y="134" text-anchor="middle" class="num">3</text>
+  <text x="624" y="134" class="h">Kontextabgrenzung</text><text x="596" y="162" class="t">Fachliche und technische Nachbarsysteme</text>
+  <rect x="862" y="105" width="296" height="92" class="box" fill="#d8f1e5" stroke="#87c8a8"/>
+  <circle cx="886" cy="129" r="14" fill="#31936a"/><text x="886" y="134" text-anchor="middle" class="num">10</text>
+  <text x="910" y="134" class="h">Qualitätsanforderungen</text><text x="882" y="162" class="t">Szenarien und messbare Abnahmewerte</text>
+
+  <!-- Strategie and architecture views -->
+  <rect x="42" y="254" width="255" height="100" class="box" fill="#fff1bd" stroke="#e7c75b"/>
+  <circle cx="68" cy="280" r="14" fill="#bd8a00"/><text x="68" y="285" text-anchor="middle" class="num">4</text>
+  <text x="94" y="285" class="h">Lösungsstrategie</text><text x="64" y="315" class="t">Leitlinien und zentrale Ansätze</text><text x="64" y="335" class="t">für die Umsetzung</text>
+  <rect x="350" y="230" width="262" height="120" class="box" fill="#fff5cc" stroke="#e5cc70"/>
+  <circle cx="376" cy="256" r="14" fill="#bd8a00"/><text x="376" y="261" text-anchor="middle" class="num">5</text>
+  <text x="402" y="261" class="h">Bausteinsicht</text><text x="374" y="292" class="t">Module, Verantwortungen</text><text x="374" y="313" class="t">und Ports / Adapter</text>
+  <rect x="650" y="230" width="230" height="120" class="box" fill="#fff5cc" stroke="#e5cc70"/>
+  <circle cx="676" cy="256" r="14" fill="#bd8a00"/><text x="676" y="261" text-anchor="middle" class="num">6</text>
+  <text x="702" y="261" class="h">Laufzeitsicht</text><text x="674" y="292" class="t">Abläufe, Interaktionen</text><text x="674" y="313" class="t">und Zustandswechsel</text>
+  <rect x="918" y="230" width="240" height="120" class="box" fill="#fff5cc" stroke="#e5cc70"/>
+  <circle cx="944" cy="256" r="14" fill="#bd8a00"/><text x="944" y="261" text-anchor="middle" class="num">7</text>
+  <text x="970" y="261" class="h">Verteilungssicht</text><text x="942" y="292" class="t">Container, Netze</text><text x="942" y="313" class="t">und Betriebsumgebungen</text>
+
+  <!-- Cross-cutting -->
+  <rect x="350" y="416" width="262" height="92" class="box" fill="#e5e9ff" stroke="#aab5ef"/>
+  <circle cx="376" cy="442" r="14" fill="#596cc2"/><text x="376" y="447" text-anchor="middle" class="num">8</text>
+  <text x="402" y="447" class="h">Querschnittskonzepte</text><text x="374" y="477" class="t">Security · Persistenz · Messaging</text>
+  <rect x="650" y="416" width="230" height="92" class="box" fill="#fbe0e2" stroke="#e9a5ac"/>
+  <circle cx="676" cy="442" r="14" fill="#c75260"/><text x="676" y="447" text-anchor="middle" class="num">9</text>
+  <text x="702" y="447" class="h">Entscheidungen</text><text x="674" y="477" class="t">Wahl · Gründe · Konsequenzen</text>
+  <rect x="918" y="416" width="240" height="92" class="box" fill="#d8f1e5" stroke="#87c8a8"/>
+  <circle cx="944" cy="442" r="14" fill="#31936a"/><text x="944" y="447" text-anchor="middle" class="num">11</text>
+  <text x="970" y="447" class="h">Risiken &amp; Schulden</text><text x="942" y="477" class="t">Bekannte Lücken und nächste Schritte</text>
+
+  <rect x="42" y="416" width="255" height="92" class="box" fill="#e7f1fb" stroke="#9bc0e4"/>
+  <circle cx="68" cy="442" r="14" fill="#3478ac"/><text x="68" y="447" text-anchor="middle" class="num">12</text>
+  <text x="94" y="447" class="h">Glossar</text><text x="64" y="477" class="t">Gemeinsame Begriffe und Abkürzungen</text>
+
+  <!-- Relationships -->
+  <path d="M286 151 H318" class="link"/><path d="M544 151 H576" class="link"/><path d="M830 151 H862" class="soft"/>
+  <path d="M169 197 V254" class="link"/><path d="M297 304 H350" class="link"/>
+  <path d="M612 290 H650" class="link"/><path d="M880 290 H918" class="link"/>
+  <path d="M481 350 V416" class="soft"/><path d="M765 350 V416" class="soft"/><path d="M1038 350 V416" class="soft"/>
+  <path d="M297 462 H350" class="soft"/><path d="M612 462 H650" class="soft"/><path d="M880 462 H918" class="soft"/>
+  <text x="42" y="570" class="subtitle">Leserichtung: Ziele und Randbedingungen setzen den Rahmen; die Sichten zeigen Struktur, Verhalten und Betrieb.</text>
+  <text x="42" y="593" class="subtitle">Konzepte, Entscheidungen, Qualität und Risiken erklären die übergreifenden Eigenschaften der Lösung.</text>
+</svg>

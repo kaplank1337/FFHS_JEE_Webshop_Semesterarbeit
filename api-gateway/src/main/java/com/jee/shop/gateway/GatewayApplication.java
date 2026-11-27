@@ -2,11 +2,11 @@ package com.jee.shop.gateway;
 
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
-import com.jee.shop.gateway.filter.CorsFilter;
-import com.jee.shop.gateway.resource.HealthResource;
-import com.jee.shop.gateway.resource.OrderProxyResource;
-import com.jee.shop.gateway.resource.ProductProxyResource;
-import com.jee.shop.gateway.resource.UserProxyResource;
+import com.jee.shop.gateway.adapter.in.rest.filter.CorsFilter;
+import com.jee.shop.gateway.adapter.in.rest.HealthResource;
+import com.jee.shop.gateway.adapter.in.rest.OrderProxyResource;
+import com.jee.shop.gateway.adapter.in.rest.ProductProxyResource;
+import com.jee.shop.gateway.adapter.in.rest.UserProxyResource;
 
 import java.util.Set;
 

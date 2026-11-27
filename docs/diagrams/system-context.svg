@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-labelledby="title desc">
+  <title id="title">Systemkontext SIP Scout Order Shop</title>
+  <desc id="desc">Browser kommuniziert per REST mit dem API-Gateway und per WebSocket mit dem Shipping-Service. Das Gateway ruft User- und Order-Service auf. Order und Shipping tauschen JMS-Ereignisse aus. Alle Services speichern in eigenen Schemas derselben PostgreSQL-Datenbank.</desc>
+  <defs>
+    <marker id="rest" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#287b72"/></marker>
+    <marker id="jms" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#d18b18"/></marker>
+    <marker id="ws" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#596cc2"/></marker>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#173b3b" flood-opacity=".12"/></filter>
+    <style>
+      .head{font:700 26px system-ui,-apple-system,Segoe UI,sans-serif;fill:#123c3d}.sub{font:14px system-ui,-apple-system,Segoe UI,sans-serif;fill:#587071}
+      .node{rx:16;stroke-width:1.6;filter:url(#shadow)}.label{font:700 17px system-ui,-apple-system,Segoe UI,sans-serif;fill:#123c3d}.detail{font:13px system-ui,-apple-system,Segoe UI,sans-serif;fill:#294c4d}
+      .restline{stroke:#287b72;stroke-width:3;fill:none;marker-end:url(#rest)}.jmsline{stroke:#d18b18;stroke-width:3;fill:none;marker-end:url(#jms)}.wsline{stroke:#596cc2;stroke-width:3;stroke-dasharray:8 6;fill:none;marker-end:url(#ws)}
+      .legend{font:13px system-ui,-apple-system,Segoe UI,sans-serif;fill:#294c4d}
+    </style>
+  </defs>
+  <rect width="1200" height="640" rx="22" fill="#f7faf8"/>
+  <text x="42" y="48" class="head">Systemkontext und technische Kommunikation</text>
+  <text x="42" y="73" class="sub">SIP Scout Order Shop · synchrones REST, asynchrones JMS und benutzerbezogene Lieferupdates per WebSocket</text>
+
+  <!-- nodes -->
+  <rect x="42" y="248" width="190" height="126" class="node" fill="#ffebc4" stroke="#e8aa45"/>
+  <text x="137" y="281" text-anchor="middle" class="label">Browser / UI</text>
+  <text x="137" y="310" text-anchor="middle" class="detail">React / Vite</text>
+  <text x="137" y="333" text-anchor="middle" class="detail">Katalog · Konto · Orders</text>
+
+  <rect x="315" y="248" width="210" height="126" class="node" fill="#ffe0b0" stroke="#e8aa45"/>
+  <text x="420" y="281" text-anchor="middle" class="label">API-Gateway</text>
+  <text x="420" y="310" text-anchor="middle" class="detail">REST-Routing · CORS</text>
+  <text x="420" y="333" text-anchor="middle" class="detail">ein öffentlicher Einstieg</text>
+
+  <rect x="620" y="108" width="220" height="112" class="node" fill="#dff0e1" stroke="#91bd93"/>
+  <text x="730" y="142" text-anchor="middle" class="label">User-Service</text>
+  <text x="730" y="171" text-anchor="middle" class="detail">Registrierung · Login · JWT</text>
+  <text x="730" y="193" text-anchor="middle" class="detail">app_user-Schema</text>
+
+  <rect x="620" y="254" width="220" height="120" class="node" fill="#dff0e1" stroke="#91bd93"/>
+  <text x="730" y="288" text-anchor="middle" class="label">Order-Service</text>
+  <text x="730" y="317" text-anchor="middle" class="detail">Produkte · Checkout</text>
+  <text x="730" y="339" text-anchor="middle" class="detail">orders-Schema</text>
+
+  <rect x="620" y="421" width="220" height="120" class="node" fill="#eee2f4" stroke="#b79bc9"/>
+  <text x="730" y="455" text-anchor="middle" class="label">Shipping-Service</text>
+  <text x="730" y="484" text-anchor="middle" class="detail">Lieferstatus · Simulation</text>
+  <text x="730" y="506" text-anchor="middle" class="detail">WebSocket · shipping-Schema</text>
+
+  <rect x="938" y="142" width="218" height="118" class="node" fill="#e2ecf8" stroke="#9bb7d7"/>
+  <text x="1047" y="178" text-anchor="middle" class="label">PostgreSQL</text>
+  <text x="1047" y="207" text-anchor="middle" class="detail">webshop-Datenbank</text>
+  <text x="1047" y="230" text-anchor="middle" class="detail">3 getrennte Schemas</text>
+
+  <rect x="938" y="374" width="218" height="118" class="node" fill="#ffe8cc" stroke="#e5b46c"/>
+  <text x="1047" y="410" text-anchor="middle" class="label">ActiveMQ</text>
+  <text x="1047" y="439" text-anchor="middle" class="detail">Queue: order.created</text>
+  <text x="1047" y="462" text-anchor="middle" class="detail">Topic: delivery.status.changed</text>
+
+  <!-- REST -->
+  <path d="M232 288 H315" class="restline"/><text x="273" y="276" text-anchor="middle" class="detail">REST</text>
+  <path d="M525 267 C565 230 570 180 620 170" class="restline"/><text x="567" y="211" text-anchor="middle" class="detail">REST</text>
+  <path d="M525 340 H620" class="restline"/><text x="568" y="328" text-anchor="middle" class="detail">REST</text>
+  <!-- Database connections -->
+  <path d="M840 164 H938" class="restline"/><path d="M840 293 C888 293 890 222 938 222" class="restline"/>
+  <path d="M840 483 C900 483 880 240 938 240" class="restline"/>
+  <text x="886" y="285" text-anchor="middle" class="detail">JPA</text>
+  <!-- JMS events -->
+  <path d="M840 345 C900 345 890 400 938 400" class="jmsline"/><text x="883" y="365" text-anchor="middle" class="detail">order.created</text>
+  <path d="M840 470 C890 470 900 450 938 450" class="jmsline"/><text x="887" y="478" text-anchor="middle" class="detail">Status</text>
+  <path d="M938 392 C890 380 890 310 840 310" class="jmsline"/><text x="886" y="345" text-anchor="middle" class="detail">Status</text>
+  <!-- WebSocket back to browser -->
+  <path d="M620 526 C490 602 260 570 137 374" class="wsline"/><text x="376" y="565" text-anchor="middle" class="detail">WebSocket-Statusupdates</text>
+
+  <line x1="42" y1="604" x2="84" y2="604" class="restline"/><text x="94" y="609" class="legend">REST / JPA</text>
+  <line x1="242" y1="604" x2="284" y2="604" class="jmsline"/><text x="294" y="609" class="legend">JMS-Ereignisse</text>
+  <line x1="474" y1="604" x2="516" y2="604" class="wsline"/><text x="526" y="609" class="legend">WebSocket</text>
+</svg>

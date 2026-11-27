@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="470" viewBox="0 0 1200 470" role="img" aria-labelledby="title desc">
+  <title id="title">Ports-and-Adapters-Aufbau eines Services</title>
+  <desc id="desc">Eingangsadapter rufen Inbound-Ports auf. Diese leiten in die Anwendung und den Domain-Kern. Der Kern verwendet Outbound-Ports, die Infrastrukturadapter implementieren.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#547174"/></marker>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#173b3b" flood-opacity=".12"/></filter>
+    <style>
+      .title{font:700 25px system-ui,-apple-system,Segoe UI,sans-serif;fill:#123c3d}.sub{font:14px system-ui,-apple-system,Segoe UI,sans-serif;fill:#587071}
+      .box{rx:17;stroke-width:1.6;filter:url(#shadow)}.h{font:700 16px system-ui,-apple-system,Segoe UI,sans-serif;fill:#123c3d}.t{font:13px system-ui,-apple-system,Segoe UI,sans-serif;fill:#294c4d}
+      .line{stroke:#547174;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1200" height="470" rx="22" fill="#f7faf8"/>
+  <text x="42" y="48" class="title">Hexagonale Architektur pro Backend-Service</text>
+  <text x="42" y="73" class="sub">Technische Adapter hängen an Ports; der Anwendungsablauf bleibt hinter den Schnittstellen organisiert.</text>
+
+  <rect x="42" y="145" width="205" height="170" class="box" fill="#ffebc4" stroke="#e8aa45"/>
+  <text x="144" y="181" text-anchor="middle" class="h">Eingangsadapter</text>
+  <text x="144" y="216" text-anchor="middle" class="t">REST-Ressource</text>
+  <text x="144" y="242" text-anchor="middle" class="t">JMS Listener</text>
+  <text x="144" y="268" text-anchor="middle" class="t">WebSocket Endpoint</text>
+
+  <rect x="285" y="145" width="190" height="170" class="box" fill="#fff5cc" stroke="#e5cc70"/>
+  <text x="380" y="181" text-anchor="middle" class="h">Inbound-Ports</text>
+  <text x="380" y="216" text-anchor="middle" class="t">Use-Case-Interfaces</text>
+  <text x="380" y="242" text-anchor="middle" class="t">CheckoutUseCase</text>
+  <text x="380" y="268" text-anchor="middle" class="t">ShippingUseCases</text>
+
+  <rect x="515" y="118" width="230" height="224" class="box" fill="#dff0e1" stroke="#91bd93"/>
+  <text x="630" y="160" text-anchor="middle" class="h">Anwendungskern</text>
+  <text x="630" y="198" text-anchor="middle" class="t">Anwendungsservices</text>
+  <text x="630" y="226" text-anchor="middle" class="t">Fachliche Abläufe</text>
+  <line x1="555" y1="245" x2="705" y2="245" stroke="#b3d3b6" stroke-width="1"/>
+  <text x="630" y="275" text-anchor="middle" class="t">Domain-Modelle</text>
+  <text x="630" y="302" text-anchor="middle" class="t">Status und Regeln</text>
+
+  <rect x="785" y="145" width="190" height="170" class="box" fill="#e5e9ff" stroke="#aab5ef"/>
+  <text x="880" y="181" text-anchor="middle" class="h">Outbound-Ports</text>
+  <text x="880" y="216" text-anchor="middle" class="t">Benötigte Fähigkeiten</text>
+  <text x="880" y="242" text-anchor="middle" class="t">OrderStore</text>
+  <text x="880" y="268" text-anchor="middle" class="t">LiveDeliveryUpdatesPort</text>
+
+  <rect x="1013" y="145" width="145" height="170" class="box" fill="#eee2f4" stroke="#b79bc9"/>
+  <text x="1085" y="181" text-anchor="middle" class="h">Ausgangsadapter</text>
+  <text x="1085" y="216" text-anchor="middle" class="t">JPA</text>
+  <text x="1085" y="242" text-anchor="middle" class="t">JMS / HTTP</text>
+  <text x="1085" y="268" text-anchor="middle" class="t">Timer / WebSocket</text>
+
+  <path d="M247 230 H285" class="line"/><path d="M475 230 H515" class="line"/>
+  <path d="M745 230 H785" class="line"/><path d="M975 230 H1013" class="line"/>
+  <text x="42" y="382" class="sub">Aufrufrichtung: aussen → Use Case → Anwendung. Für ausgehende Arbeit ruft die Anwendung einen Port auf, den ein Adapter bereitstellt.</text>
+  <text x="42" y="410" class="sub">Die JPA-Entities liegen derzeit noch im Domain-Paket; die Ports entkoppeln die Anwendungsdienste von den Adaptern.</text>
+</svg>

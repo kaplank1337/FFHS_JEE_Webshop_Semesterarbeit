@@ -118,7 +118,7 @@ Die Antwort ist eine Liste. Ein Produkt enthält `id`, `name`, `description`, `c
 
 Die Migration `V2__Insert_products.sql` legt diese sieben Produkte an. Die Werte sind Startbestand; Bestände und Preise können sich durch Laufzeitänderungen unterscheiden. `category` ist der Enum-Wert, den das JSON liefert.
 
-Eine Live-Abfrage des Order-Service am 18.11.2026 bestätigte, dass alle sieben Produkte in der Datenbank aktiv sind. Dabei war der aktuelle Bestand von Mineralwasser 1.5L bereits auf 98 gesunken; die Tabelle zeigt weiterhin die ursprünglichen Migrationsbestände.
+Die Tabelle zeigt die Startwerte aus der Seed-Migration. Laufende Bestände können sich durch Bestellungen ändern.
 
 | ID | Getränk | Kategorie | Preis | Startbestand |
 |---|---|---|---:|---:|
@@ -134,7 +134,7 @@ Preise sind Dezimalwerte in der Projektwährung (aktuell ohne Währungsfeld im D
 
 ### Produkt schreiben
 
-`POST /products` erstellt ein Produkt, `PUT /products/{id}` ersetzt dessen Produktdaten, `DELETE /products/{id}` löscht es. JSON-Felder zum Schreiben sind `name`, `description`, `category`, `price`, `stockQuantity` und `active`. Diese Schreiboperationen sind derzeit nicht über das Gateway verfügbar.
+`POST /products` erstellt ein Produkt, `PUT /products/{id}` ersetzt dessen Produktdaten, `DELETE /products/{id}` löscht es. JSON-Felder zum Schreiben sind `name`, `description`, `category`, `price`, `stockQuantity` und `active`. Das Gateway bietet derzeit nur die Lese-Endpunkte `GET /products` und `GET /products/{id}` an. Die Schreiboperationen sind nicht über das Gateway verfügbar.
 
 ```http
 POST http://localhost:11080/order-service-1.0.0/api/products
@@ -150,7 +150,7 @@ Content-Type: application/json
 }
 ```
 
-Hinweis: Der Code kommentiert diese Schreiboperationen als ADMIN-Routen, prüft dort aber aktuell kein JWT und keine Admin-Rolle. Daher sollte das UI sie nicht als geschützte Admin-Funktion betrachten, bis die Backend-Autorisierung ergänzt ist.
+Hinweis: Der Order-Service prüft für Produkt-Schreiboperationen aktuell keine Admin-Rolle. Diese Endpunkte sind daher keine sichere Admin-Funktion und sollten nicht extern freigegeben werden.
 
 ## Bestellungen
 
@@ -233,13 +233,7 @@ Erfolg beim Löschen: `204 No Content`. Lesen, Statusänderung und Löschen sind
 
 ## Lieferungen
 
-Der Shipping-Service hat eigene Routen, wird aber **noch nicht vom API-Gateway weitergeleitet**. Die lokale Anwendung verwendet den JAX-RS-Präfix `/shipments` und `ShipmentResource` zusätzlich `/shipments`; dadurch lautet der aktuelle direkte Pfad `http://localhost:12080/shipping-service-1.0.0/shipments/shipments`.
-
-- `GET /shipments` — implementiert, derzeit aber mit einer fest codierten Test-User-ID statt dem JWT-Benutzer.
-- `GET /shipments/{shipmentId}` — liefert eine Lieferung anhand ihrer ID.
-- `PUT /shipments/{shipmentId}/status` mit `{"status":"SHIPPED"}` — Statuswerte: `PREPARING`, `READY_FOR_SHIPMENT`, `SHIPPED`, `DELIVERED`, `CANCELLED`.
-
-Diese Lieferungsrouten sind noch nicht bereit für eine echte benutzerspezifische UI. Vorher sollten Gateway-Proxy und JWT-basierte Benutzerzuordnung ergänzt werden.
+Die Shipping-REST-Routen verwenden den JAX-RS-Präfix `/shipments` und die Ressourcenroute `/shipments`. Lokal ist der direkte Pfad deshalb `http://localhost:12080/shipping-service-1.0.0/shipments/shipments`. Diese REST-Routen sind derzeit nicht über das API-Gateway geroutet. Sie verlangen ein Bearer-JWT und beschränken Lese- und Statusänderungen auf Lieferungen des angemeldeten Benutzers. Die UI verwendet für Live-Updates den WebSocket; der aktuelle Status kann über die Bestellabfrage gelesen werden.
 
 ## Health Checks
 
@@ -266,4 +260,4 @@ Antworten sind derzeit `{"status":"UP"}` beziehungsweise `{"status":"READY"}`.
 | `PUT` | `/orders/{id}/status` | Bearer JWT | Status der eigenen Bestellung ändern |
 | `DELETE` | `/orders/{id}` | Bearer JWT | Eigene Bestellung löschen |
 
-Für ein UI, das ausschließlich das Gateway ansprechen soll, fehlen aktuell noch die Gateway-Routen `/products` und `/shipments` sowie die benutzerspezifische Autorisierung im Shipping-Service.
+Das Gateway stellt Produkt-Lesezugriffe bereit. Shipping-REST ist nicht über das Gateway geroutet; die UI benötigt dafür aktuell keinen direkten REST-Aufruf, da Bestellstatus über `/orders` gelesen und Statusänderungen per WebSocket zugestellt werden.

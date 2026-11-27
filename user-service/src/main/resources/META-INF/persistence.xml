@@ -9,7 +9,7 @@
         <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
         <jta-data-source>java:app/jdbc/userDS</jta-data-source>
 
-        <class>com.jee.shop.user.entity.UserEntity</class>
+        <class>com.jee.shop.user.domain.model.UserEntity</class>
 
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
 

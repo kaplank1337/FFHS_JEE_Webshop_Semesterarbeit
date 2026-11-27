@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1220" height="690" viewBox="0 0 1220 690" role="img" aria-labelledby="title desc">
+  <title id="title">Relationales Datenmodell des JEE Drink Shop</title>
+  <desc id="desc">Drei PostgreSQL-Schemas enthalten User, Product, Order, OrderItem und Shipment. Nur OrderItem zu Order ist ein schema-intern erzwungener Fremdschlüssel. Serviceübergreifende IDs sind logische Referenzen ohne Fremdschlüssel.</desc>
+  <defs>
+    <marker id="fkArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#287b72"/></marker>
+    <marker id="refArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8b6bb0"/></marker>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#173b3b" flood-opacity=".12"/></filter>
+    <style>
+      .head{font:700 25px system-ui,-apple-system,Segoe UI,sans-serif;fill:#123c3d}.sub{font:14px system-ui,-apple-system,Segoe UI,sans-serif;fill:#587071}
+      .schema{rx:18;stroke-width:1.5}.schemaTitle{font:700 15px system-ui,-apple-system,Segoe UI,sans-serif;fill:#123c3d}.entity{rx:12;stroke-width:1.5;filter:url(#shadow)}
+      .entityTitle{font:700 15px system-ui,-apple-system,Segoe UI,sans-serif;fill:#123c3d}.field{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#294c4d}.note{font:12px system-ui,-apple-system,Segoe UI,sans-serif;fill:#536c6e}
+      .fk{stroke:#287b72;stroke-width:3;fill:none;marker-end:url(#fkArrow)}.ref{stroke:#8b6bb0;stroke-width:2.5;stroke-dasharray:7 6;fill:none;marker-end:url(#refArrow)}
+    </style>
+  </defs>
+  <rect width="1220" height="690" rx="22" fill="#f7faf8"/>
+  <text x="40" y="45" class="head">Relationales Datenmodell</text>
+  <text x="40" y="70" class="sub">PostgreSQL-Datenbank `webshop` · Service-Schemas und fachliche Referenzen</text>
+
+  <!-- schema backgrounds -->
+  <rect x="35" y="100" width="300" height="450" class="schema" fill="#e7f2fb" stroke="#a9c6df"/>
+  <text x="55" y="130" class="schemaTitle">Schema: app_user</text>
+  <rect x="355" y="100" width="565" height="450" class="schema" fill="#e8f4e8" stroke="#a8caa7"/>
+  <text x="375" y="130" class="schemaTitle">Schema: orders</text>
+  <rect x="940" y="100" width="245" height="450" class="schema" fill="#f1eaf7" stroke="#c4acd4"/>
+  <text x="960" y="130" class="schemaTitle">Schema: shipping</text>
+
+  <!-- entities -->
+  <rect x="62" y="205" width="245" height="190" class="entity" fill="#fff" stroke="#86aed0"/>
+  <text x="82" y="234" class="entityTitle">user</text>
+  <text x="82" y="264" class="field">PK  id UUID</text>
+  <text x="82" y="288" class="field">UQ  username VARCHAR(50)</text>
+  <text x="82" y="312" class="field">UQ  email VARCHAR(100)</text>
+  <text x="82" y="336" class="field">    password_hash</text>
+  <text x="82" y="360" class="field">    role · created_at · updated_at</text>
+
+  <rect x="380" y="185" width="225" height="195" class="entity" fill="#fff" stroke="#8fbd8d"/>
+  <text x="400" y="214" class="entityTitle">order</text>
+  <text x="400" y="244" class="field">PK  id UUID</text>
+  <text x="400" y="268" class="field">REF user_id UUID</text>
+  <text x="400" y="292" class="field">    status VARCHAR(20)</text>
+  <text x="400" y="316" class="field">    total_price NUMERIC(10,2)</text>
+  <text x="400" y="340" class="field">    created_at · updated_at</text>
+
+  <rect x="660" y="170" width="235" height="225" class="entity" fill="#fff" stroke="#8fbd8d"/>
+  <text x="680" y="199" class="entityTitle">order_item</text>
+  <text x="680" y="229" class="field">PK  id UUID</text>
+  <text x="680" y="253" class="field">FK  order_id UUID</text>
+  <text x="680" y="277" class="field">REF product_id UUID</text>
+  <text x="680" y="301" class="field">    product_name</text>
+  <text x="680" y="325" class="field">    quantity INT</text>
+  <text x="680" y="349" class="field">    unit_price · total_price</text>
+
+  <rect x="510" y="430" width="245" height="100" class="entity" fill="#fff" stroke="#8fbd8d"/>
+  <text x="530" y="459" class="entityTitle">product</text>
+  <text x="530" y="485" class="field">PK id · name · category</text>
+  <text x="530" y="509" class="field">price · stock_quantity · active</text>
+
+  <rect x="960" y="220" width="205" height="205" class="entity" fill="#fff" stroke="#b49bc7"/>
+  <text x="980" y="249" class="entityTitle">shipment</text>
+  <text x="980" y="279" class="field">PK  id UUID</text>
+  <text x="980" y="303" class="field">REF order_id UUID</text>
+  <text x="980" y="327" class="field">REF user_id UUID</text>
+  <text x="980" y="351" class="field">    shipping_status</text>
+  <text x="980" y="375" class="field">    tracking_number</text>
+  <text x="980" y="399" class="field">    created_at · updated_at</text>
+
+  <!-- actual FK -->
+  <path d="M605 265 H660" class="fk"/>
+  <text x="632" y="250" text-anchor="middle" class="note">1 : 0..n · order_id FK</text>
+
+  <!-- logical references across tables/services -->
+  <path d="M307 250 H380" class="ref"/>
+  <text x="343" y="238" text-anchor="middle" class="note">user_id</text>
+  <path d="M632 430 V395" class="ref"/>
+  <text x="645" y="418" class="note">product_id</text>
+  <path d="M490 185 V150 H1062 V220" class="ref"/>
+  <text x="800" y="145" text-anchor="middle" class="note">order_id · fachliche Referenz ohne FK</text>
+  <path d="M180 395 V570 H1062 V425" class="ref"/>
+  <text x="825" y="562" text-anchor="middle" class="note">user_id · fachliche Referenz ohne FK</text>
+
+  <!-- legend -->
+  <line x1="42" y1="600" x2="90" y2="600" class="fk"/><text x="104" y="605" class="note">relational erzwungener Fremdschlüssel</text>
+  <line x1="420" y1="600" x2="468" y2="600" class="ref"/><text x="482" y="605" class="note">logische UUID-Referenz zwischen Tabellen / Services</text>
+  <text x="42" y="644" class="sub">Attributtypen, NULL-/UNIQUE-/CHECK-Regeln und Indizes sind in docs/entwurf/datenmodell.md vollständig aufgeführt.</text>
+</svg>

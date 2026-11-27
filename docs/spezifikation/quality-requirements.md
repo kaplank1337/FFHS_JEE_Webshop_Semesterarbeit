@@ -1,0 +1,25 @@
+# Qualitätsanforderungen
+
+Diese Liste enthält nur überprüfbare Eigenschaften, die im aktuellen Quellcode oder in der produktionsähnlichen Compose-Datei bereits umgesetzt sind. Nicht gemessene Antwortzeiten, Verfügbarkeitswerte und zukünftige Sicherheitsziele sind nicht als erfüllte Anforderungen aufgeführt.
+
+Die Nachweise sind Quellcode-/Konfigurationsbelege. Sie sagen nicht aus, dass in diesem Arbeitsschritt Laufzeittests oder Performance-Messungen ausgeführt wurden.
+
+## SMART spezifizierte Qualitätsmerkmale
+
+| ID | Merkmal und bestehende Anforderung | S – spezifisch | M – messbar | A – erreichbar / belegt | R – relevant | T – Zeitbezug | Nachweis |
+|---|---|---|---|---|---|---|---|
+| Q-01 | **Sichere Registrierungseingaben:** Bei jeder Registrierung validiert der User-Service Username (3–50 Zeichen), E-Mail-Format, Passwort (mindestens 8 Zeichen) sowie Vor-/Nachname (1–50 Zeichen). | Konkret benannte Felder und Grenzwerte | Grenzwerte im DTO/Bean Validation prüfen; ungültige Requests erzeugen Validierungsfehler | Validierungsannotation ist in `RegisterRequest` vorhanden | Verhindert unvollständige oder formal ungültige Kontodaten | Bei jedem `POST /users/auth/register` | `user-service/.../RegisterRequest.java` |
+| Q-02 | **Tokenlebensdauer und Prüfung:** Ein JWT enthält `iat` und `exp`; die Standardkonfiguration setzt 3600 Sekunden. Die Prüfung weist Tokens mit ungültiger Signatur oder abgelaufener `exp` zurück. | HS256 JWT mit definierten Zeitangaben | Payload auslesen; Signatur verändern bzw. Ablaufzeit überschreiten und `validateToken` prüfen | Erzeugung und Prüfung sind implementiert | Geschützte REST- und WebSocket-Abläufe benötigen eine begrenzte Token-Gültigkeit | Bei Login-Erzeugung und bei jeder Tokenprüfung | `TokenService`, `ConfigService`; Unit-Tests für Erzeugung, gültiges Token, manipulierte Signatur und fehlerhaftes Format |
+| Q-03 | **Benutzerbezogener Zugriff:** Geschützte Order- und Shipment-Abfragen verwenden die aus dem Token aufgelöste User-ID; Datensätze werden nach dieser ID gefiltert. | Eigene Bestellung/Lieferung ist der Zugriffsumfang | Mit zwei User-IDs prüfen: fremde Ressource liefert keine fremden Daten | User-ID-Port und Filter in Services sind vorhanden | Schützt persönliche Bestell- und Lieferdaten | Bei jedem geschützten Order-/Shipment-Request | `CurrentUserService`, `OrderService`, `ShippingService` |
+| Q-04 | **Benutzerbezogene WebSocket-Übertragung:** Bei einer Statusmeldung sendet der Shipping-Service nur an WebSocket-Sitzungen, die der User-ID des Ereignisses zugeordnet sind. | Benutzer-ID ordnet Sitzungen und Ereignis zu | Für ein Ereignis werden genau die Sessions der zugeordneten User-ID ausgewählt | Session-Map und Filter sind implementiert | Verhindert Statusmeldungen an andere angemeldete Benutzer | Bei jedem WebSocket-Statusereignis | `ShippingStatusWebSocketEndpoint` |
+| Q-05 | **Zeitlich begrenzte Demo-Zustellung:** Für jede geplante Demo-Zustellung wählt der Shipping-Service eine ganze Zahl von 1 bis 10 Sekunden und legt damit einen einmaligen Timer für `DELIVERED` an. | Genau ein `DELIVERED`-Timer pro Scheduling-Aufruf | Bereich und Timer-Erzeugung im Scheduler prüfen; Rückgabewert/Log enthält gewählte Sekunden | Zufallsbereich und EJB-Timer sind implementiert | Macht den asynchronen Ablauf in einer kurzen Vorführung sichtbar | Unmittelbar nach dem Empfang einer Order und Erstellung der Lieferung | `ShipmentDeliverySimulator` |
+| Q-06 | **Begrenzter öffentlicher Docker-Einstieg:** In der vollständigen Compose-Konfiguration besitzt nur der Edge-Gateway eine Host-Portbindung: `8080:80`. | Ein definierter öffentlicher Einstieg | `ports:`-Einträge in `docker-compose.prod.yml` prüfen | Konfiguration veröffentlicht nur den Edge-Port | UI, REST und WebSocket werden über einen Einstiegspunkt erreicht; Backend-Ports bleiben intern | Während des vollständigen Docker-Betriebs | `docker-compose.prod.yml` |
+| Q-07 | **Strukturierte Service-Module:** Die vier Backend-Module trennen Anwendungs-Ports von eingehenden und ausgehenden Adaptern. | Paketstruktur `application/port/*`, `adapter/in`, `adapter/out` | Paketlayout und Abhängigkeiten im Quellcode-Review prüfen | Die Paketstruktur und Schnittstellen sind vorhanden | Erleichtert das Auffinden von REST-, JMS-, JPA-, HTTP- und Timer-Integration | Für jede Änderung an einem Service-Modul | Quellcode unter `api-gateway`, `user-service`, `order-service` und `shipping-service` |
+
+## Erfasste Prüfmethode
+
+Für die in der Tabelle genannten Merkmale sind die Prüfungen direkt aus den angegebenen Quellcode-/Konfigurationsbelegen ableitbar. Vor einer Bewertung als **getestetes Laufzeitverhalten** muss ein separater Testlauf durchgeführt und mit Datum, Umgebung und Ergebnis protokolliert werden. Die Tabelle enthält keine nicht ausgeführten Messresultate.
+
+## Abgrenzung
+
+Performance-SLAs wie „95 % der Requests unter einer Sekunde“, Verfügbarkeitsziele und Hochverfügbarkeit sind nicht Bestandteil dieser Spezifikation: Dafür liegt hier kein Mess- oder Betriebsnachweis vor.
